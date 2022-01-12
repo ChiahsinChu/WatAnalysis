@@ -1,0 +1,1276 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>zjxpack.postprocess package &mdash; zjxpack 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> zjxpack
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">zjxpack.postprocess package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-zjxpack.postprocess.ase_distance">zjxpack.postprocess.ase_distance module</a></li>
+<li><a class="reference internal" href="#module-zjxpack.postprocess.common">zjxpack.postprocess.common module</a></li>
+<li><a class="reference internal" href="#module-zjxpack.postprocess.format_convert">zjxpack.postprocess.format_convert module</a></li>
+<li><a class="reference internal" href="#module-zjxpack.postprocess.fps">zjxpack.postprocess.fps module</a></li>
+<li><a class="reference internal" href="#module-zjxpack.postprocess.interface">zjxpack.postprocess.interface module</a></li>
+<li><a class="reference internal" href="#module-zjxpack.postprocess.metal">zjxpack.postprocess.metal module</a></li>
+<li><a class="reference internal" href="#module-zjxpack.postprocess.ml">zjxpack.postprocess.ml module</a></li>
+<li><a class="reference internal" href="#module-zjxpack.postprocess.os_op">zjxpack.postprocess.os_op module</a></li>
+<li><a class="reference internal" href="#module-zjxpack.postprocess.rdf">zjxpack.postprocess.rdf module</a></li>
+<li><a class="reference internal" href="#module-zjxpack.postprocess.soap_ana">zjxpack.postprocess.soap_ana module</a></li>
+<li><a class="reference internal" href="#module-zjxpack.postprocess.voronoi_polyhedra">zjxpack.postprocess.voronoi_polyhedra module</a></li>
+<li><a class="reference internal" href="#module-zjxpack.postprocess">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">zjxpack</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>zjxpack.postprocess package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/zjxpack.postprocess.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="zjxpack-postprocess-package">
+<h1>zjxpack.postprocess package<a class="headerlink" href="#zjxpack-postprocess-package" title="Permalink to this headline">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-zjxpack.postprocess.ase_distance">
+<span id="zjxpack-postprocess-ase-distance-module"></span><h2>zjxpack.postprocess.ase_distance module<a class="headerlink" href="#module-zjxpack.postprocess.ase_distance" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.complete">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">complete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.complete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert missing cell vectors into orthogonal unit vectors.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.complete_cell">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">complete_cell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.complete_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate complete cell with missing lattice vectors.</p>
+<p>Returns a new 3x3 ndarray.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.conditional_find_mic">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">conditional_find_mic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pbc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.conditional_find_mic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of vector arrays and corresponding list of vector lengths
+for a given list of vector arrays. The minimum image convention is applied
+if cell and pbc are set. Can be used like a simple version of get_distances.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.distance">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the distance between two structures s1 and s2.</p>
+<p>The distance is defined by the Frobenius norm of
+the spatial distance between all coordinates (see
+numpy.linalg.norm for the definition).</p>
+<p>permute: minimise the distance by ‘permuting’ same elements</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.find_mic">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">find_mic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pbc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.find_mic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the minimum-image representation of vector(s) v using either one
+of two find mic algorithms depending on the given cell, v and pbc.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.general_find_mic">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">general_find_mic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pbc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.general_find_mic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the minimum-image representation of vector(s) v. Using the
+Minkowski reduction the algorithm is relatively slow but safe for any cell.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.get_all_distances">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">get_all_distances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.get_all_distances" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return distances of all of the atoms with all of the atoms.</p>
+<p>Use mic=True to use the Minimum Image Convention.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.get_angles">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">get_angles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pbc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.get_angles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get angles formed by two lists of vectors.</p>
+<p>Calculate angle in degrees between vectors v0 and v1</p>
+<p>Set a cell and pbc to enable minimum image
+convention, otherwise angles are taken as-is.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.get_angles_derivatives">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">get_angles_derivatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pbc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.get_angles_derivatives" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get derivatives of angles formed by two lists of vectors (v0, v1) w.r.t.
+Cartesian coordinates in degrees.</p>
+<p>Set a cell and pbc to enable minimum image
+convention, otherwise derivatives of angles are taken as-is.</p>
+<p>There is a singularity in the derivatives for sin(angle) -&gt; 0 for which
+a ZeroDivisionError is raised.</p>
+<p>Derivative output format: [[dx_a0, dy_a0, dz_a0], […], […, dz_a2].</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.get_dihedrals">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">get_dihedrals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pbc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.get_dihedrals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get dihedral angles formed by three lists of vectors.</p>
+<p>Calculate dihedral angle (in degrees) between the vectors a0-&gt;a1,
+a1-&gt;a2 and a2-&gt;a3, written as v0, v1 and v2.</p>
+<p>Set a cell and pbc to enable minimum image
+convention, otherwise angles are taken as-is.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.get_dihedrals_derivatives">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">get_dihedrals_derivatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pbc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.get_dihedrals_derivatives" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get derivatives of dihedrals formed by three lists of vectors
+(v0, v1, v2) w.r.t Cartesian coordinates in degrees.</p>
+<p>Set a cell and pbc to enable minimum image
+convention, otherwise dihedrals are taken as-is.</p>
+<p>Derivative output format: [[dx_a0, dy_a0, dz_a0], …, […, dz_a3]].</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.get_distances">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">get_distances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pbc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.get_distances" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return distance matrix of every position in p1 with every position in p2</p>
+<p>If p2 is not set, it is assumed that distances between all positions in p1
+are desired. p2 will be set to p1 in this case.</p>
+<p>Use set cell and pbc to use the minimum image convention.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.get_distances_derivatives">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">get_distances_derivatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pbc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.get_distances_derivatives" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get derivatives of distances for all vectors in v0 w.r.t. Cartesian
+coordinates in Angstrom.</p>
+<p>Set cell and pbc to use the minimum image convention.</p>
+<p>There is a singularity for distances -&gt; 0 for which a ZeroDivisionError is
+raised.
+Derivative output format: [[dx_a0, dy_a0, dz_a0], [dx_a1, dy_a1, dz_a1]].</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.get_duplicate_atoms">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">get_duplicate_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.get_duplicate_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get list of duplicate atoms and delete them if requested.</p>
+<p>Identify all atoms which lie within the cutoff radius of each other.
+Delete one set of them if delete == True.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.get_layers">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">get_layers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">miller</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.get_layers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns two arrays describing which layer each atom belongs
+to and the distance between the layers and origo.</p>
+<p>Parameters:</p>
+<dl class="simple">
+<dt>miller: 3 integers</dt><dd><p>The Miller indices of the planes. Actually, any direction
+in reciprocal space works, so if a and b are two float
+vectors spanning an atomic plane, you can get all layers
+parallel to this with miller=np.cross(a,b).</p>
+</dd>
+<dt>tolerance: float</dt><dd><p>The maximum distance in Angstrom along the plane normal for
+counting two atoms as belonging to the same plane.</p>
+</dd>
+</dl>
+<p>Returns:</p>
+<dl class="simple">
+<dt>tags: array of integres</dt><dd><p>Array of layer indices for each atom.</p>
+</dd>
+<dt>levels: array of floats</dt><dd><p>Array of distances in Angstrom from each layer to origo.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ase.spacegroup</span> <span class="kn">import</span> <span class="n">crystal</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atoms</span> <span class="o">=</span> <span class="n">crystal</span><span class="p">(</span><span class="s1">&#39;Al&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)],</span> <span class="n">spacegroup</span><span class="o">=</span><span class="mi">225</span><span class="p">,</span> <span class="n">cellpar</span><span class="o">=</span><span class="mf">4.05</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">atoms</span><span class="o">.</span><span class="n">positions</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="go">array([[ 0.   ,  0.   ,  0.   ],</span>
+<span class="go">       [ 0.   ,  2.025,  2.025],</span>
+<span class="go">       [ 2.025,  0.   ,  2.025],</span>
+<span class="go">       [ 2.025,  2.025,  0.   ]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_layers</span><span class="p">(</span><span class="n">atoms</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>  
+<span class="go">(array([0, 1, 1, 0]...), array([ 0.   ,  2.025]))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.naive_find_mic">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">naive_find_mic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.naive_find_mic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the minimum-image representation of vector(s) v.
+Safe to use for (pbc.all() and (norm(v_mic) &lt; 0.5 * min(cell.lengths()))).
+Can otherwise fail for non-orthorhombic cells.
+Described in:
+W. Smith, “The Minimum Image Convention in Non-Cubic MD Cells”, 1989,
+<a class="reference external" href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.57.1696">http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.57.1696</a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.permute_axes">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">permute_axes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permutation</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.permute_axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Permute axes of unit cell and atom positions. Considers only cell and
+atomic positions. Other vector quantities such as momenta are not
+modified.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.scaled_positions">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">scaled_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.scaled_positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate scaled positions from Cartesian positions.</p>
+<p>The scaled positions are the positions given in the basis
+of the cell vectors.  For the purpose of defining the basis, cell
+vectors that are zero will be replaced by unit vectors as per
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">complete()</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.translate_pretty">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">translate_pretty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fractional</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pbc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.translate_pretty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translates atoms such that fractional positions are minimized.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ase_distance.wrap_positions">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ase_distance.</span></span><span class="sig-name descname"><span class="pre">wrap_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pbc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.5,</span> <span class="pre">0.5,</span> <span class="pre">0.5)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretty_translation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ase_distance.wrap_positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrap positions to unit cell.</p>
+<p>Returns positions changed by a multiple of the unit cell vectors to
+fit inside the space spanned by these vectors.  See also the
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">ase.Atoms.wrap()</span></code> method.</p>
+<p>Parameters:</p>
+<dl class="simple">
+<dt>positions: float ndarray of shape (n, 3)</dt><dd><p>Positions of the atoms</p>
+</dd>
+<dt>cell: float ndarray of shape (3, 3)</dt><dd><p>Unit cell vectors.</p>
+</dd>
+<dt>pbc: one or 3 bool</dt><dd><p>For each axis in the unit cell decides whether the positions
+will be moved along this axis.</p>
+</dd>
+<dt>center: three float</dt><dd><p>The positons in fractional coordinates that the new positions
+will be nearest possible to.</p>
+</dd>
+<dt>pretty_translation: bool</dt><dd><p>Translates atoms such that fractional coordinates are minimized.</p>
+</dd>
+<dt>eps: float</dt><dd><p>Small number to prevent slightly negative coordinates from being
+wrapped.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ase.geometry</span> <span class="kn">import</span> <span class="n">wrap_positions</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wrap_positions</span><span class="p">([[</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.01</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">]],</span>
+<span class="gp">... </span>               <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">]],</span>
+<span class="gp">... </span>               <span class="n">pbc</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="go">array([[ 0.9 ,  0.01, -0.5 ]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-zjxpack.postprocess.common">
+<span id="zjxpack-postprocess-common-module"></span><h2>zjxpack.postprocess.common module<a class="headerlink" href="#module-zjxpack.postprocess.common" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.common.cell_cross_area">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.common.</span></span><span class="sig-name descname"><span class="pre">cell_cross_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.common.cell_cross_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the cross section area of the cell</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.common.check_cell">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.common.</span></span><span class="sig-name descname"><span class="pre">check_cell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.common.check_cell" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.common.check_cellshape">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.common.</span></span><span class="sig-name descname"><span class="pre">check_cellshape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.common.check_cellshape" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.common.check_pbc">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.common.</span></span><span class="sig-name descname"><span class="pre">check_pbc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.common.check_pbc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.common.get_1d_distribution">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.common.</span></span><span class="sig-name descname"><span class="pre">get_1d_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.common.get_1d_distribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>get 1d distribution of input_data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_data</strong> – (n,2)-shape array for (x,y) pair</p></li>
+<li><p><strong>bins</strong> – int or sequence of scalars or str, optional</p></li>
+<li><p><strong>#nbins</strong> – number of bins for distribution</p></li>
+<li><p><strong>xrange</strong> – (float, float), optional
+if xrange is not provided
+then xrange=(xmin, xmax) where
+xmin = input_data[:,0].min()
+xmax = input_data[:,0].max()</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>centers of bins
+ave_data: ave value of all data within every bin
+min_data: min value of all data within every bin
+max_data: min value of all data within every bin
+std_data: std value of all data within every bin</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>x</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.common.get_elem_idxs">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.common.</span></span><span class="sig-name descname"><span class="pre">get_elem_idxs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elem_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.common.get_elem_idxs" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the list of index of neighbouring atoms</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atoms</strong> – ASE Atoms object for analysis</p></li>
+<li><p><strong>idx_c_atom</strong> – index of central atom for analysis</p></li>
+<li><p><strong>symbol_n_atom</strong> – symbol of neighbouring atoms for analysis</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of index of neighbouring atoms</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>idx_n_atom</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.common.get_elem_num">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.common.</span></span><span class="sig-name descname"><span class="pre">get_elem_num</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elem_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.common.get_elem_num" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the number of given symbol in the atoms</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atoms</strong> – ASE Atoms object for analysis</p></li>
+<li><p><strong>elem_type</strong> – symbol of atom</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the number of given symbol in the atoms</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>n</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.common.get_idx_coord">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.common.</span></span><span class="sig-name descname"><span class="pre">get_idx_coord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'xyz'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.common.get_idx_coord" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.common.vec_cos">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.common.</span></span><span class="sig-name descname"><span class="pre">vec_cos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.common.vec_cos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes 2 vectors a, b and returns the cosine</p>
+</dd></dl>
+
+</section>
+<section id="module-zjxpack.postprocess.format_convert">
+<span id="zjxpack-postprocess-format-convert-module"></span><h2>zjxpack.postprocess.format_convert module<a class="headerlink" href="#module-zjxpack.postprocess.format_convert" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.format_convert.gen_atoms">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.format_convert.</span></span><span class="sig-name descname"><span class="pre">gen_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coord</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.format_convert.gen_atoms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.format_convert.get_atoms_data">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.format_convert.</span></span><span class="sig-name descname"><span class="pre">get_atoms_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">npy_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.format_convert.get_atoms_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>get coord/frc/box from npy file</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.format_convert.get_npy_box">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.format_convert.</span></span><span class="sig-name descname"><span class="pre">get_npy_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">len_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_param</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.format_convert.get_npy_box" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.format_convert.get_symbol_list">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.format_convert.</span></span><span class="sig-name descname"><span class="pre">get_symbol_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.format_convert.get_symbol_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.format_convert.get_type">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.format_convert.</span></span><span class="sig-name descname"><span class="pre">get_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_map</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.format_convert.get_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.format_convert.lmpdump_to_npy">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.format_convert.</span></span><span class="sig-name descname"><span class="pre">lmpdump_to_npy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dump_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./system'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.format_convert.lmpdump_to_npy" title="Permalink to this definition">¶</a></dt>
+<dd><p>TBC</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.format_convert.lmpdump_to_xyz">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.format_convert.</span></span><span class="sig-name descname"><span class="pre">lmpdump_to_xyz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dump_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyz_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_map</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.format_convert.lmpdump_to_xyz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.format_convert.npy_to_xyz">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.format_convert.</span></span><span class="sig-name descname"><span class="pre">npy_to_xyz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyz_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'reftraj.xyz'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.format_convert.npy_to_xyz" title="Permalink to this definition">¶</a></dt>
+<dd><p>convert npy dataset to xyz file</p>
+<dl class="simple">
+<dt>Arg:</dt><dd><p>data_dir: dir of data for dp training
+output_dir: dir to store the output xyz files</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.format_convert.read_type">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.format_convert.</span></span><span class="sig-name descname"><span class="pre">read_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.format_convert.read_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.format_convert.read_type_map">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.format_convert.</span></span><span class="sig-name descname"><span class="pre">read_type_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_map_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.format_convert.read_type_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.format_convert.save_npy">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.format_convert.</span></span><span class="sig-name descname"><span class="pre">save_npy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boxes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.format_convert.save_npy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.format_convert.xyz_to_lmpdata">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.format_convert.</span></span><span class="sig-name descname"><span class="pre">xyz_to_lmpdata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyz_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmpdata_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_map</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.format_convert.xyz_to_lmpdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>TBC</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.format_convert.xyz_to_npy">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.format_convert.</span></span><span class="sig-name descname"><span class="pre">xyz_to_npy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frc_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./system'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.format_convert.xyz_to_npy" title="Permalink to this definition">¶</a></dt>
+<dd><p>convert the xyz files (pos_file and frc_file) from CP2K reftraj
+to a dir (output_dir) including all the files for DeepMD-kit training</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.format_convert.xyz_to_poscar">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.format_convert.</span></span><span class="sig-name descname"><span class="pre">xyz_to_poscar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyz_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poscar_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.format_convert.xyz_to_poscar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-zjxpack.postprocess.fps">
+<span id="zjxpack-postprocess-fps-module"></span><h2>zjxpack.postprocess.fps module<a class="headerlink" href="#module-zjxpack.postprocess.fps" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.fps.get_inner_diss_matrix">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.fps.</span></span><span class="sig-name descname"><span class="pre">get_inner_diss_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">soap_add</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.fps.get_inner_diss_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate distance matrix (based on soap) between the new structures</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>distance between i-th and j-th structure in soap_add</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>inner_diss_matrix[i][j]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.fps.get_inter_diss_matrix">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.fps.</span></span><span class="sig-name descname"><span class="pre">get_inter_diss_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">soap_add</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">soap_ori</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.fps.get_inter_diss_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate distance matrix (based on soap) between the new structures and the original structrues</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>distance between i-th structure in soap_add and j-th structure in soap_add</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>inter_diss_matrix[i][j]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.fps.soap_pick_idx">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.fps.</span></span><span class="sig-name descname"><span class="pre">soap_pick_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inner_diss_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inter_diss_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp_task_max</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.fps.soap_pick_idx" title="Permalink to this definition">¶</a></dt>
+<dd><p>find (fp_task_max) structures with farthest distance to other stuctures (both original and added structure)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inner_diss_matrix</strong> – (len(soap_add),len(soap_add))</p></li>
+<li><p><strong>inter_diss_matrix</strong> – (len(soap_add),len(soap_ori))</p></li>
+<li><p><strong>fp_task_max</strong> – number of selected structures</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of index of selected structures</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>top_k_idx</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-zjxpack.postprocess.interface">
+<span id="zjxpack-postprocess-interface-module"></span><h2>zjxpack.postprocess.interface module<a class="headerlink" href="#module-zjxpack.postprocess.interface" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.interface.get_ave_z">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.interface.</span></span><span class="sig-name descname"><span class="pre">get_ave_z</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surface_idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.interface.get_ave_z" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.interface.get_bulk_wat_den">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.interface.</span></span><span class="sig-name descname"><span class="pre">get_bulk_wat_den</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_surf_hi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_surf_lo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_wat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.interface.get_bulk_wat_den" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.interface.get_den">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.interface.</span></span><span class="sig-name descname"><span class="pre">get_den</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zlo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mol_mass</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.interface.get_den" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atoms</strong> – ASE Atoms object</p></li>
+<li><p><strong>idx</strong> – indices list of species for analysis</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>den:</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>count</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.interface.get_den_hist">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.interface.</span></span><span class="sig-name descname"><span class="pre">get_den_hist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mol_mass</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.interface.get_den_hist" title="Permalink to this definition">¶</a></dt>
+<dd><p>TBC</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.interface.get_surface_atom_idx">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.interface.</span></span><span class="sig-name descname"><span class="pre">get_surface_atom_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slab_idx_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surface_atom_number</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.interface.get_surface_atom_idx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the indexes of atoms of surface</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atoms</strong> – slab or slab in two-surface for processing</p></li>
+<li><p><strong>slab_idx_list</strong> – specified index for slab atoms</p></li>
+<li><p><strong>surface_atom_number</strong> – num of atoms exposed on the surface</p></li>
+<li><p><strong>mode</strong> – outside of the slab, inside for the divided slab</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; Assume electrode-center model is used! &lt;&lt;&lt;
+upper_slab_idx: idx of atoms of upper surface
+lower_slab_idx: idx of atoms of lower surface
+</pre></div>
+</div>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.interface.get_wat_den_hist">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.interface.</span></span><span class="sig-name descname"><span class="pre">get_wat_den_hist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.interface.get_wat_den_hist" title="Permalink to this definition">¶</a></dt>
+<dd><p>TBC</p>
+</dd></dl>
+
+</section>
+<section id="module-zjxpack.postprocess.metal">
+<span id="zjxpack-postprocess-metal-module"></span><h2>zjxpack.postprocess.metal module<a class="headerlink" href="#module-zjxpack.postprocess.metal" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECAnalysis">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.metal.</span></span><span class="sig-name descname"><span class="pre">ECAnalysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atomgroup</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECAnalysis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">MDAnalysis.analysis.base.AnalysisBase</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECAnalysis.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECAnalysis.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform the calculation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start</strong> (<em>int</em><em>, </em><em>optional</em>) – start frame of analysis</p></li>
+<li><p><strong>stop</strong> (<em>int</em><em>, </em><em>optional</em>) – stop frame of analysis</p></li>
+<li><p><strong>step</strong> (<em>int</em><em>, </em><em>optional</em>) – number of frames to skip between each analysed frame</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Turn on verbosity</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.metal.</span></span><span class="sig-name descname"><span class="pre">ECMetal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numbers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">momenta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magmoms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaled_positions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pbc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">celldisp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calculator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">velocities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metal_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surf_atom_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ase.atoms.Atoms</span></code></p>
+<p>Inherit from ASE Atoms class</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.find_center">
+<span class="sig-name descname"><span class="pre">find_center</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_idx_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.find_center" title="Permalink to this definition">¶</a></dt>
+<dd><p>TBC</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.get_all_distances">
+<span class="sig-name descname"><span class="pre">get_all_distances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.get_all_distances" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return distances of all of the atoms with all of the atoms.</p>
+<p>Use mic=True to use the Minimum Image Convention.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.get_bulk_wat_den">
+<span class="sig-name descname"><span class="pre">get_bulk_wat_den</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_bulk_wat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.get_bulk_wat_den" title="Permalink to this definition">¶</a></dt>
+<dd><p>TBC</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.get_distance">
+<span class="sig-name descname"><span class="pre">get_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.get_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return distance between two atoms.</p>
+<p>Use mic=True to use the Minimum Image Convention.
+vector=True gives the distance vector (from a0 to a1).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.get_distances">
+<span class="sig-name descname"><span class="pre">get_distances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.get_distances" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return distances of atom No.i with a list of atoms.</p>
+<p>Use mic=True to use the Minimum Image Convention.
+vector=True gives the distance vector (from a to self[indices]).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.get_pair_dict">
+<span class="sig-name descname"><span class="pre">get_pair_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.get_pair_dict" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>mode:</dt><dd><p>mode to find water molecules
+<strong>* simple/simple_mic/rearrange/rearrange_mic are only *</strong>
+<strong>* available for the model without proton hopping!    *</strong></p>
+<p>“simple”: O-H-H, mic=False when calculate d_{O-H}
+“simple_mic”: O-H-H, mic=True when calculate d_{O-H}
+“rearrange”: O… and H…, mic=False when calculate d_{O-H}
+“rearrange_mic”: O… and H…, mic=True when calculate d_{O-H}
+“full”: find water with voronoi polyhedra (available for the systems
+with proton hopping)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.get_species_idx">
+<span class="sig-name descname"><span class="pre">get_species_idx</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.get_species_idx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.get_surf_idx">
+<span class="sig-name descname"><span class="pre">get_surf_idx</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.get_surf_idx" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>2-D numpy array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.get_surf_region">
+<span class="sig-name descname"><span class="pre">get_surf_region</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.get_surf_region" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>numpy array of (z_lo, z_hi)
+z_lo: average z for lower surface
+z_hi: average z for upper surface</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.get_wat_den">
+<span class="sig-name descname"><span class="pre">get_wat_den</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nbins</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.get_wat_den" title="Permalink to this definition">¶</a></dt>
+<dd><p>TBC</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.get_water_angle">
+<span class="sig-name descname"><span class="pre">get_water_angle</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.get_water_angle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.get_watorient">
+<span class="sig-name descname"><span class="pre">get_watorient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nbins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.get_watorient" title="Permalink to this definition">¶</a></dt>
+<dd><p>TBC</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.get_wrapped_waterbox">
+<span class="sig-name descname"><span class="pre">get_wrapped_waterbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.get_wrapped_waterbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>TBC
+:param mode: mode in self.get_pair_dict(mode)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.set_metal_type">
+<span class="sig-name descname"><span class="pre">set_metal_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metal_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.set_metal_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.set_slab_idx">
+<span class="sig-name descname"><span class="pre">set_slab_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slab_idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.set_slab_idx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.set_species_idx">
+<span class="sig-name descname"><span class="pre">set_species_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species_idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.set_species_idx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.set_surf_atom_num">
+<span class="sig-name descname"><span class="pre">set_surf_atom_num</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surf_atom_num</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.set_surf_atom_num" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.set_surf_idx">
+<span class="sig-name descname"><span class="pre">set_surf_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surf_idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.set_surf_idx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.ECMetal.set_water_idx">
+<span class="sig-name descname"><span class="pre">set_water_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">water_idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.ECMetal.set_water_idx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.WaterZDensityAnal">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.metal.</span></span><span class="sig-name descname"><span class="pre">WaterZDensityAnal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atomgroup</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.WaterZDensityAnal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#zjxpack.postprocess.metal.ECAnalysis" title="zjxpack.postprocess.metal.ECAnalysis"><code class="xref py py-class docutils literal notranslate"><span class="pre">zjxpack.postprocess.metal.ECAnalysis</span></code></a></p>
+<p>Inherit from MDAnalysis.analysis.base.AnalysisBase Class
+Calculate water density along z direction</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.WaterZDensityAnal.interval_optimize">
+<span class="sig-name descname"><span class="pre">interval_optimize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_dz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.WaterZDensityAnal.interval_optimize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.WaterZOriAnal">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.metal.</span></span><span class="sig-name descname"><span class="pre">WaterZOriAnal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atomgroup</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rearrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.WaterZOriAnal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#zjxpack.postprocess.metal.WaterZDensityAnal" title="zjxpack.postprocess.metal.WaterZDensityAnal"><code class="xref py py-class docutils literal notranslate"><span class="pre">zjxpack.postprocess.metal.WaterZDensityAnal</span></code></a></p>
+<p>Inherit from MDAnalysis.analysis.base.AnalysisBase Class
+Calculate water orientational dipole along z direction</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.WaterZOriAnal.get_pair_dict">
+<span class="sig-name descname"><span class="pre">get_pair_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.WaterZOriAnal.get_pair_dict" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>mode:</dt><dd><p>mode to find water molecules
+<strong>* simple/simple_mic/rearrange/rearrange_mic are only *</strong>
+<strong>* available for the model without proton hopping!    *</strong></p>
+<p>“simple”: O-H-H, mic=False when calculate d_{O-H}
+“simple_mic”: O-H-H, mic=True when calculate d_{O-H}
+“rearrange”: O… and H…, mic=False when calculate d_{O-H}
+“rearrange_mic”: O… and H…, mic=True when calculate d_{O-H}
+“full”: find water with voronoi polyhedra (available for the systems
+with proton hopping)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.WaterZOriAnal.get_wrapped_waterbox">
+<span class="sig-name descname"><span class="pre">get_wrapped_waterbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.WaterZOriAnal.get_wrapped_waterbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>TBC
+:param mode: mode in self.get_pair_dict(mode)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.metal.init_pair_dict">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.metal.</span></span><span class="sig-name descname"><span class="pre">init_pair_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">center_idx_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.metal.init_pair_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>TBC</p>
+</dd></dl>
+
+</section>
+<section id="module-zjxpack.postprocess.ml">
+<span id="zjxpack-postprocess-ml-module"></span><h2>zjxpack.postprocess.ml module<a class="headerlink" href="#module-zjxpack.postprocess.ml" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ml.energy_rmse">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ml.</span></span><span class="sig-name descname"><span class="pre">energy_rmse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ener1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ener2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">natom</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ml.energy_rmse" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ener2</strong> (<em>ener1 and</em>) – numpy array in eV</p></li>
+<li><p><strong>natom</strong> – number of atoms</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>RMSE in meV/atom</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>error</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ml.force_rmse">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ml.</span></span><span class="sig-name descname"><span class="pre">force_rmse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frc1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frc2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ml.force_rmse" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>frc2</strong> (<em>frc1 and</em>) – numpy array in eV/A</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>RMSE in meV/A</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>error</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.ml.get_rmse">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.ml.</span></span><span class="sig-name descname"><span class="pre">get_rmse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.ml.get_rmse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-zjxpack.postprocess.os_op">
+<span id="zjxpack-postprocess-os-op-module"></span><h2>zjxpack.postprocess.os_op module<a class="headerlink" href="#module-zjxpack.postprocess.os_op" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.os_op.get_dir_list">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.os_op.</span></span><span class="sig-name descname"><span class="pre">get_dir_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">find_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.os_op.get_dir_list" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kw</strong> – keyword for dir name</p></li>
+<li><p><strong>find_dir</strong> – searching directory (wildcard allowed!)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.os_op.get_file_list">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.os_op.</span></span><span class="sig-name descname"><span class="pre">get_file_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">find_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.os_op.get_file_list" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kw</strong> – keyword for file name</p></li>
+<li><p><strong>find_dir</strong> – searching directory (wildcard allowed!)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-zjxpack.postprocess.rdf">
+<span id="zjxpack-postprocess-rdf-module"></span><h2>zjxpack.postprocess.rdf module<a class="headerlink" href="#module-zjxpack.postprocess.rdf" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.rdf.get_1st_dis">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.rdf.</span></span><span class="sig-name descname"><span class="pre">get_1st_dis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.rdf.get_1st_dis" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the nearest distance at PBC</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a1</strong> – atom 1 coordination [x, y, z]</p></li>
+<li><p><strong>a2</strong> – atom 2 coordination [x, y, z]</p></li>
+<li><p><strong>param</strong> – cell parameter [a, b, c, alpha, beta, gamma]</p></li>
+<li><p><strong>**</strong> (<em>** only for orthogonal</em><em> or </em><em>hexagnoal</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the nearest distance at PBC
+a2: atom 2 coordination after wrapping (atom 1 as center)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>d</p>
+</dd>
+</dl>
+<dl>
+<dt>Fortune Code:</dt><dd><p>d = 0
+i = 0
+if (param(6) == 90) then</p>
+<blockquote>
+<div><p>! orthogonal box
+a=param(1)
+b=param(2)
+x = x - FLOOR((x- x0 + a/2) / a) * a
+y = y - FLOOR((y- y0 + b/2) / b) * b</p>
+</div></blockquote>
+<p>end if
+if (param(6) == 120) then</p>
+<blockquote>
+<div><p>! hexagonal box (90 90 120)
+a=param(1)
+i = FLOOR((y - y0 + a*0.866/2)/(a*0.866))
+y = y - i * (a*0.866)
+x = x + i * (a*0.5)
+x = x - FLOOR((x - x0 + a/2)/a) * a</p>
+</div></blockquote>
+<p>end if
+if (param(6) == 60) then</p>
+<blockquote>
+<div><p>! hexagonal box (90 90 60)
+a=param(1)
+i = FLOOR((y - y0 + a*0.866/2)/(a*0.866))
+y = y - i * (a*0.866)
+x = x - i * (a*0.5)
+x = x - FLOOR((x - x0 + a/2)/a) * a</p>
+</div></blockquote>
+<p>end if
+d = sqrt((x-x0)**2+(y-y0)**2+(z-z0)**2)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.rdf.get_2nd_dis">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.rdf.</span></span><span class="sig-name descname"><span class="pre">get_2nd_dis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.rdf.get_2nd_dis" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the 2nd mic distance at PBC</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a1</strong> – atom 1 coordination [x, y, z]</p></li>
+<li><p><strong>a2</strong> – <strong>WARPPED</strong> atom 2 coordination [x, y, z]</p></li>
+<li><p><strong>param</strong> – cell parameter [a, b, c, alpha, beta, gamma]</p></li>
+<li><p><strong>**</strong> (<em>** only for cubic</em><em> or </em><em>hexagnoal</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the 2nd mic distance at PBC</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>d</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.rdf.get_dis">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.rdf.</span></span><span class="sig-name descname"><span class="pre">get_dis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.rdf.get_dis" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the distance between atom1 and atom2</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a1</strong> – position of atom1 ([x1, y1, z1], numpy array)</p></li>
+<li><p><strong>a2</strong> – position of atom2 ([x2, y2, z2], numpy array)</p></li>
+<li><p><strong>param</strong> – cell parameter ([a, b, c, alpha, beta, gamma])</p></li>
+<li><p><strong>Only!!!**</strong> (<em>**Orthognoal</em><em> or </em><em>Hexagnol</em>) – </p></li>
+<li><p><strong>d_max</strong> – max distance considered in analysis</p></li>
+<li><p><strong>n_layer</strong> – 1 or 2, consider one cell or other 8 neighbouring cells</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a distance value (n_layer=1) or a distance array (n_layer=2)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>d</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.rdf.get_multi_c_atom_data">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.rdf.</span></span><span class="sig-name descname"><span class="pre">get_multi_c_atom_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyz_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idxs_c_atom</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idxs_n_atom</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.rdf.get_multi_c_atom_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.rdf.get_one_c_atom_data">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.rdf.</span></span><span class="sig-name descname"><span class="pre">get_one_c_atom_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyz_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_c_atom</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idxs_n_atom</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.rdf.get_one_c_atom_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.rdf.get_rdf">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.rdf.</span></span><span class="sig-name descname"><span class="pre">get_rdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">count</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.rdf.get_rdf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.rdf.print_input">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.rdf.</span></span><span class="sig-name descname"><span class="pre">print_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyz_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.rdf.print_input" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-zjxpack.postprocess.soap_ana">
+<span id="zjxpack-postprocess-soap-ana-module"></span><h2>zjxpack.postprocess.soap_ana module<a class="headerlink" href="#module-zjxpack.postprocess.soap_ana" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.soap_ana.gen_afs_slope">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.soap_ana.</span></span><span class="sig-name descname"><span class="pre">gen_afs_slope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_soap_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.soap_ana.gen_afs_slope" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.soap_ana.gen_desc">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.soap_ana.</span></span><span class="sig-name descname"><span class="pre">gen_desc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">soap_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dscribe'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.soap_ana.gen_desc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.soap_ana.gen_elem_data">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.soap_ana.</span></span><span class="sig-name descname"><span class="pre">gen_elem_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elem_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.soap_ana.gen_elem_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.soap_ana.gen_multi_data">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.soap_ana.</span></span><span class="sig-name descname"><span class="pre">gen_multi_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.soap_ana.gen_multi_data" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file_list</strong> – dir list of <cite>*.npy</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.soap_ana.gen_pca_data">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.soap_ana.</span></span><span class="sig-name descname"><span class="pre">gen_pca_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.soap_ana.gen_pca_data" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – 2-dimensional soap numpy array (num_soap, dim_soap)</p></li>
+<li><p><strong>n_components</strong> – arg in sklearn.decomposition.PCA
+0 &lt; float &lt; 1 or int &gt; 1</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.soap_ana.gen_pes_slope">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.soap_ana.</span></span><span class="sig-name descname"><span class="pre">gen_pes_slope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">soap_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.soap_ana.gen_pes_slope" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.soap_ana.get_atomic_number">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.soap_ana.</span></span><span class="sig-name descname"><span class="pre">get_atomic_number</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_map</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.soap_ana.get_atomic_number" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.soap_ana.get_elem_idxs">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.soap_ana.</span></span><span class="sig-name descname"><span class="pre">get_elem_idxs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elem_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.soap_ana.get_elem_idxs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.soap_ana.npy_to_soap">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.soap_ana.</span></span><span class="sig-name descname"><span class="pre">npy_to_soap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">npy_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">soap_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">if_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.soap_ana.npy_to_soap" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate soap from npy file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>npy_dir</strong> – dir of DP dataset</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.soap_ana.xyz_to_soap">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.soap_ana.</span></span><span class="sig-name descname"><span class="pre">xyz_to_soap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyz_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">soap_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">if_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.soap_ana.xyz_to_soap" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate soap from xyz_file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xyz_file</strong> – input file</p></li>
+<li><p><strong>param</strong> – cell parameters (array for atoms.set_cell)</p></li>
+<li><p><strong>desc</strong> – descriptor</p></li>
+<li><p><strong>soap_type</strong> – “quip” or “dscribe”</p></li>
+<li><p><strong>if_frame</strong> – soap for frame or atom</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>soap data (numpy array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-zjxpack.postprocess.voronoi_polyhedra">
+<span id="zjxpack-postprocess-voronoi-polyhedra-module"></span><h2>zjxpack.postprocess.voronoi_polyhedra module<a class="headerlink" href="#module-zjxpack.postprocess.voronoi_polyhedra" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.voronoi_polyhedra.find_center">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.voronoi_polyhedra.</span></span><span class="sig-name descname"><span class="pre">find_center</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_idx_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.voronoi_polyhedra.find_center" title="Permalink to this definition">¶</a></dt>
+<dd><p>TBC</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="zjxpack.postprocess.voronoi_polyhedra.get_pair_dict">
+<span class="sig-prename descclassname"><span class="pre">zjxpack.postprocess.voronoi_polyhedra.</span></span><span class="sig-name descname"><span class="pre">get_pair_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">center_idx_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zjxpack.postprocess.voronoi_polyhedra.get_pair_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>TBC</p>
+</dd></dl>
+
+</section>
+<section id="module-zjxpack.postprocess">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-zjxpack.postprocess" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Jia-Xin Zhu
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
