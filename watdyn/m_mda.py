@@ -1,5 +1,3 @@
-from signal import raise_signal
-from tkinter.messagebox import NO
 import numpy as np
 from MDAnalysis.lib.distances import capped_distance, calc_angles
 from MDAnalysis.analysis.hydrogenbonds.hbond_analysis import HydrogenBondAnalysis
@@ -9,7 +7,7 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
 
     def __init__(self,
                  universe,
-                 regions=None,
+                 region=None,
                  surf_ids=None,
                  donors_sel=None,
                  hydrogens_sel=None,
@@ -19,20 +17,36 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
                  d_a_cutoff=3.0,
                  d_h_a_angle_cutoff=150,
                  update_selections=True):
-
+        """
+        Parameters
+        ----------
+        region : (2, )-shape List (optional)
+            region in which the HB is analyzed
+            z positions w.r.t surface
+            if None, all HB is considered
+        surf_ids : (2, n_surf)-shape List (optional)
+            atomic indices of surface atoms
+            expected to be not None if region is not None
+        """
         super(PartialHBAnalysis,
               self).__init__(universe, donors_sel, hydrogens_sel,
                              acceptors_sel, between, d_h_cutoff, d_a_cutoff,
                              d_h_a_angle_cutoff, update_selections)
 
-        self.regions = regions
-        if regions is not None:
-            self.regions = regions[np.argsort(regions[:, 0])]
-
         self.surf_ids = surf_ids
         if surf_ids is not None:
             # TODO: universe should be wrapped before passed
             self.surf_ids = np.array(surf_ids, dtype=np.int32)
+
+        self.region = region
+        if region is not None:
+            self.region = np.array(self.region)
+            if self.region.shape != (2, ):
+                raise AttributeError(
+                    'region is expected to be a (2, )-shape array')
+            if self.surf_ids is None:
+                raise AttributeError(
+                    'surf_ids is required when regions is not None')
 
         # trajectory value initial
         self.ag = universe.atoms
@@ -42,31 +56,23 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         self.para = None
         self._para_region = None
 
-    def _parallel_init(self, *args, **kwargs):
-
-        start = self._para_region.start
-        stop = self._para_region.stop
-        step = self._para_region.step
-        self._setup_frames(self._trajectory, start, stop, step)
-        self._prepare()
-
     def _single_frame(self):
         box = self._ts.dimensions
+
         # Update donor-hydrogen pairs if necessary
         if self.update_selections:
             self._donors, self._hydrogens = self._get_dh_pairs()
         donors = self._donors
         hydrogens = self._hydrogens
 
-        if self.regions is not None:
-            if self.surf_ids is None:
-                raise AttributeError(
-                    'surf_ids is required when regions is not None')
+        if self.region is not None:
             ts_surf_zlo = self._ts.positions.T[2][self.surf_ids[0]]
             ts_surf_zhi = self._ts.positions.T[2][self.surf_ids[1]]
             z_surf = [np.mean(ts_surf_zlo), np.mean(ts_surf_zhi)]
             print(z_surf)
-            mask = self._get_mask(z_surf, donors.positions)
+
+            # Mask to select atoms at specified regions
+            mask = self._get_mask(z_surf, self._donors.positions)
             donors = donors[mask]
             hydrogens = hydrogens[mask]
 
@@ -117,11 +123,31 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         self.results.hbonds[5].extend(hbond_angles)
 
     def _get_mask(self, z_surf, positions):
-        abs_regions = self._get_abs_regions(z_surf)
         z_coords = positions[:, 2]
+        abs_region = self._get_abs_region(self.region, z_surf)
+        print(abs_region)
+        mask_0 = z_coords >= abs_region[0][0]
+        mask_1 = z_coords < abs_region[0][1]
+        mask_2 = z_coords >= abs_region[1][0]
+        mask_3 = z_coords < abs_region[1][1]
+        mask = (mask_0 & mask_1) | (mask_2 & mask_3)
+        return mask
 
-    def _get_abs_regions(self, z_surf):
-        pass
+    def _get_abs_region(self, region, z_surf):
+        region_0 = z_surf[0] + region
+        region_1 = z_surf[1] - region
+        tmp = [region_1[1], region_1[0]]
+        region_1 = np.array(tmp)
+        abs_region = [region_0, region_1]
+        return np.array(abs_region)
+
+    def _parallel_init(self, *args, **kwargs):
+
+        start = self._para_region.start
+        stop = self._para_region.stop
+        step = self._para_region.step
+        self._setup_frames(self._trajectory, start, stop, step)
+        self._prepare()
 
     def run(self, start=None, stop=None, step=None, verbose=None):
 
@@ -144,7 +170,7 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
 
         # data need to be transformed, which is usually relative to values in prepare() method.
 
-        return [self.results["hbonds"]]
+        return [self.results.hbonds]
 
     def _parallel_conclude(self, rawdata):
 
