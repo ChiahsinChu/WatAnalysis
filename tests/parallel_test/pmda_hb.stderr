@@ -1,4 +1,0 @@
-/bigdata/jxzhu/205/software/pmda/pmda/parallel.py:342: UserWarning: Couldn't guess ideal number of blocks from scheduler. Setting n_blocks=1. Please provide `n_blocks` in call to method.
-  warnings.warn(
-/home/jxzhu/.conda/envs/band-alignment/lib/python3.9/site-packages/MDAnalysis/coordinates/base.py:892: UserWarning: Reader has no dt information, set to 1.0 ps
-  warnings.warn("Reader has no dt information, set to 1.0 ps")
