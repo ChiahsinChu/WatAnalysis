@@ -71,6 +71,18 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         self.para = None
         self._para_region = None
 
+    def _prepare(self):
+        """
+        Add z coords of donors/hydrogens/acceptors w.r.t. the 
+        nearest surface into results
+
+        self.results.hbonds: 
+        frame_idx, donor_idx, hydrogen_idx, acceptor_idx, HB distance, 
+        HB angle, donor_zcoord, hydrogen_zcoord, acceptor_zcoord 
+        """
+        super(PartialHBAnalysis, self)._prepare()
+        self.results.hbonds = [[], [], [], [], [], [], [], [], []]
+
     def _single_frame(self):
         box = self._ts.dimensions
 

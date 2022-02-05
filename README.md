@@ -12,18 +12,10 @@ This package includes:
 **TO DO LIST**
 
 - [ ] code for trajectory wrapping
-- [ ] update region-specific function (donor/acceptor)
-- [ ] add z-coord of HB into results
+- [x] update region-specific function (donor/acceptor)
+- [x] add z-coord of HB into results
 - [ ] add graph-generation module (directed/undirected)
 
 **temporary note**
-
-- modification of the HB analysis
-
-  - add the distance away from the nearest surface (positive for lower surface, negative for upper surface)
-
-    > frame_idx, donor_idx, hydrogen_idx, acceptor_idx, angle, distance, donor_coord, hydrogen_coord, acceptor_coord
-
-  -
 
 - generate the txt files for graph connection
