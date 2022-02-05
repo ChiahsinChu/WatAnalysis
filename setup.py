@@ -1,11 +1,11 @@
 """
-Setup script for WatDynamics
+Setup script for WatAnalysis
 """
 
 from setuptools import setup, find_packages
 
 setup(
-    name="watdyn",
+    name="WatAnalysis",
     version="0.0",
     # include all packages in src
     packages=find_packages(),
