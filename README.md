@@ -9,6 +9,7 @@ This package includes:
 - [x] (region-specified) hydrogen bonds analysis
 
 **TO DO LIST**
+- [ ] code for trajectory wrapping
 - [ ] update region-specific function (donor/acceptor)
 - [ ] add z-coord of HB into results
 - [ ] add graph-generation module (directed/undirected)
