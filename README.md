@@ -7,3 +7,8 @@ Some codes here are developed based on [`MD Analysis`](https://userguide.mdanaly
 
 This package includes:
 - [x] (region-specified) hydrogen bonds analysis
+
+**TO DO LIST**
+- [ ] update region-specific function (donor/acceptor)
+- [ ] add z-coord of HB into results
+- [ ] add graph-generation module (directed/undirected)
