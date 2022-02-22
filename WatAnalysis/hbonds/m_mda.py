@@ -16,29 +16,49 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
                  d_h_cutoff=1.2, 
                  d_a_cutoff=3.0,
                  angle_cutoff_type="d_h_a",
-                 angle_cutoff=150,
+                 angle_cutoff=None,
                  update_selections=True,
                  update_masks=False):
         """
         Parameters
         ----------
         region : (2, )-shape List (None)
-            region in which the HB is analyzed
-            z positions w.r.t surface
+            region (z positions w.r.t surface) in which the HB is analyzed
             if None, all HB is considered
         surf_ids : (2, n_surf)-shape List (None)
             atomic indices of surface atoms
             expected to be not None if region is not None
+        angle_cutoff_type: d_h_a or h_d_a
+            type for setting angle cutoff 
+            d_h_a: donor-hydrogen-acceptor
+            h_d_a: hydrogen-donor-acceptor
         update_masks : bool (False)
             if calculate the masks for donors & acceptors individually 
             False if donors & acceptors are exactly the same
             and then share their mask
             
-        other parameters are identical with those in the parent class
+        Other parameters are identical with their counterparts in the parent class.
         """
+
+        # set new cutoff attributes
+        self.angle_cutoff_type = angle_cutoff_type
+        if self.angle_cutoff_type == 'd_h_a':
+            if angle_cutoff is None:
+                self.angle_cutoff = 150
+            else:
+                self.angle_cutoff = angle_cutoff 
+        elif self.angle_cutoff_type == 'h_d_a':
+            if angle_cutoff is None:
+                self.angle_cutoff = 30
+            else:
+                self.angle_cutoff = angle_cutoff 
+        else:
+            raise AttributeError('Unknown angle cutoff type!')
+        self.update_masks = update_masks
+
         super(PartialHBAnalysis,
               self).__init__(universe, donors_sel, hydrogens_sel,
-                             acceptors_sel, between, d_h_cutoff, d_a_cutoff, angle_cutoff,
+                             acceptors_sel, between, d_h_cutoff, d_a_cutoff, self.angle_cutoff,
                              update_selections)
 
         self.surf_ids = surf_ids
@@ -56,13 +76,7 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
                 raise AttributeError(
                     'surf_ids is expected to be not None when regions is not None'
                 )
-        # set new cutoff attributes
-        self.angle_cutoff_type = angle_cutoff_type
-        if self.angle_cutoff_type != "d_h_a" and self.angle_cutoff_type != "h_d_a":
-            raise AttributeError('Unknown angle cutoff type!')
-        self.angle_cutoff = angle_cutoff
-        self.update_masks = update_masks
-
+                
         # trajectory value initial
         self.ag = universe.atoms
         self.ag_natoms = len(self.ag)
