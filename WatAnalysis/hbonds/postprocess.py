@@ -189,7 +189,7 @@ def get_graphs(hbonds_result, output_dir):
     # save files
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    np.savetxt(os.path.join(output_dir, "A.txt"), graphs, fmt="%d")
+    np.savetxt(os.path.join(output_dir, "A.txt"), graphs, delimiter=',', fmt="%d")
     np.savetxt(os.path.join(output_dir, "graph_indicator.txt"),
                graph_indicator,
                fmt="%d")
