@@ -14,16 +14,18 @@ u.trajectory.add_transformations(transform)
 
 start = time.time()
 hbonds = PartialHBAnalysis(universe=u,
-                           region=[2.7, 4.5],
+                           hb_region=[0, 4.5],
                            surf_ids=[np.arange(871, 906),
                                      np.arange(691, 726)],
                            donors_sel=None,
                            hydrogens_sel="name H",
                            acceptors_sel="name O",
                            d_a_cutoff=3.0,
-                           d_h_a_angle_cutoff=150,
+                           angle_cutoff_type='d_h_a',
+                           angle_cutoff=150,
                            update_selections=False)
 parallel_exec(hbonds.run, 0, 10000, 1, 4)
 print(hbonds.results.hbonds.shape)
 fmt = "\nWork Completed! Used Time: {:.3f} seconds"
 print(fmt.format(time.time() - start))
+np.save("./hbonds.npy", hbonds.results.hbonds)
