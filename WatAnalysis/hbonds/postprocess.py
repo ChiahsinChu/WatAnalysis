@@ -1,6 +1,7 @@
 """
 Functions for postprocessing of PartialHBAnalysis results
 """
+from matplotlib.pyplot import axis
 import numpy as np
 import os
 
@@ -70,17 +71,112 @@ def fit_biexponential(tau_timeseries, ac_timeseries):
     return params, fit_t, fit_ac
 
 
-def get_graphs(hbonds_result, start, stop, step, output_dir):
-    output_dir = os.path.realpath(output_dir)
-    ts, counts = count_by_time(hbonds_result, start)
-    tmp_count = 0
-    for t, count in zip(ts, counts):
-        tmp_result = hbonds_result[tmp_count:tmp_count+count]
-        output = get_graph(tmp_result)
-        np.save(output, output_dir + "/" + str(t) + ".txt")
-        tmp_count = tmp_count + count
+def get_graphs(hbonds_result, output_dir):
+    """
+    Generate files for further analyses:
+
+    n = total number of nodes
+    m = total number of edges
+    N = number of graphs
+    * indices start from 1
+
+    (1) A.txt (m lines)
+        sparse (block diagonal) adjacency matrix for all graphs,
+        each line corresponds to (row, col) resp. (node_id, node_id)
+
+    (2) graph_indicator.txt (n lines)
+        column vector of graph identifiers for all nodes of all graphs,
+        the value in the i-th line is the graph_id of the node with node_id i
+
+    (3) graph_labels.txt (N lines)
+        class labels for all graphs in the dataset,
+        the value in the i-th line is the class label of the graph with graph_id i
+        1 1 1 1 ...
+
+    (4) node_labels.txt (n lines)
+        column vector of node labels,
+        the value in the i-th line corresponds to the node with node_id i
+        1 1 1 1 ... (maybe you can add the distance to the surface as the label?)
+
+    Parameters
+    ----------
+    hbonds_result: (n_frame, 9)-shape List
+    output_dir:
+        directory to save file
+    """
+    # number of edges (hydrogen bonds)
+    n_edges = len(hbonds_result)
+    graphs = np.zeros((n_edges, 2), dtype=np.int32)
+    # get the range of every frames
+    u, indices = np.unique(hbonds_result[:, 0], return_index=True)
+    # number of frames
+    n_frames = len(u)
+    
+    n_nodes = 0
+    for ii in range(n_frames - 1):
+        # get the hbonds result of one frame
+        start_id = indices[ii]
+        end_id = indices[ii + 1]
+        single_frame_hbonds = hbonds_result[start_id:end_id]
+        # get the hbonds result upper/lower surfaces
+        mask_lo, mask_hi = make_mask(single_frame_hbonds)
+        d_a_pairs_lo = single_frame_hbonds[:, [1, 3]][mask_lo]
+        d_a_pairs_hi = single_frame_hbonds[:, [1, 3]][mask_hi]
+        # make graph
+        graph_lo, n_node_lo = make_graph(d_a_pairs_lo)
+        graph_hi, n_node_hi = make_graph(d_a_pairs_hi)
+        if n_nodes == 0:
+            graph_indicator = np.ones((n_node_lo), dtype=np.int32)
+        else:
+            graph_indicator = np.concatenate((graph_indicator, np.full((n_node_lo), np.max(graph_indicator) + 1)))
+        # merge graph_lo/graph_hi
+        graph_hi = graph_hi + n_node_lo + 1
+        graph = np.concatenate((graph_lo, graph_hi), axis=0)
+        graph = graph + n_nodes + 1
+        np.copyto()
+        n_nodes = n_nodes + n_node_lo + n_node_hi
+        
+    # the last frame
+    start_id = end_id
+    single_frame_hbonds = hbonds_result[start_id:]
+
+    graph_indicator
+    graph_labels = np.ones((2 * n_frames), dtype=np.int32)
+    node_labels = np.ones_like()
+
+    # save files
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    np.savetxt(os.path.join(output_dir, "A.txt"), graphs, fmt="%d")
+    np.savetxt(os.path.join(output_dir, "graph_indicator.txt"), graphs, fmt="%d")
+    np.savetxt(os.path.join(output_dir, "graph_labels.txt"), graph_labels, fmt="%d")
+    np.savetxt(os.path.join(output_dir, "node_labels.txt"), node_labels, fmt="%d")
 
         
-def get_graph(tmp_result):
-    output = 0
-    return output
+def make_graph(d_a_pairs):
+    """
+    Parameter
+    ---------
+    d_a_pairs: (n, 2)-shape List
+        id of donors/acceptors in ONE graph (surface)
+    
+    Returns
+    -------
+    graph: (n, 2)-shape List
+        adjacency matrix for input graph
+    n_node: int
+        number of nodes in the graph
+    """
+    u, indices = np.unique(d_a_pairs, return_inverse=True)
+    n_node = len(u)
+    graph = np.arange(n_node)[indices]
+    graph = np.reshape(graph, (-1, 2))
+    return graph, n_node
+
+def make_mask(single_frame_hbonds):
+    """
+    make masks for the D-A pairs at upper/lower surface
+    """
+    mask_lo = (single_frame_hbonds[:, -1] > 0)
+    mask_hi = (mask_lo == False)
+    return mask_lo, mask_hi

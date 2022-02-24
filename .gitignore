@@ -7,5 +7,6 @@ __pycache__
 *~
 .DS_Store
 
+.history
 .ipynb_checkpoints
 trajectory.xyz

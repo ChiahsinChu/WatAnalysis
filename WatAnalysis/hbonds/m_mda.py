@@ -96,6 +96,7 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         """
         super(PartialHBAnalysis, self)._prepare()
         self.results.hbonds = [[], [], [], [], [], [], [], [], []]
+        self.zs_surf = np.zeros((self.n_frames, 2), dtype=np.float32)
 
     def _single_frame(self):
         box = self._ts.dimensions
@@ -112,19 +113,20 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
             ts_surf_zlo = self._ts.positions.T[2][self.surf_ids[0]]
             ts_surf_zhi = self._ts.positions.T[2][self.surf_ids[1]]
             z_surf = [np.mean(ts_surf_zlo), np.mean(ts_surf_zhi)]
-            print(z_surf)
+            np.copyto(self.zs_surf[self._frame_index], z_surf)
+            #print(z_surf)
 
             # Mask to select atoms at specified regions
             mask = self._get_mask(z_surf, self._donors.positions)
-            donors = donors[mask]
-            hydrogens = hydrogens[mask]
-            left_donors = donors[mask == False]
-            left_hydrogens = hydrogens[mask == False]
+            donors = self._donors[mask]
+            hydrogens = self._hydrogens[mask]
+            left_donors = self._donors[mask == False]
+            left_hydrogens = self._hydrogens[mask == False]
             if self.update_masks == False:
                 mask = mask[::2]
             else:
                 mask = self._get_mask(z_surf, self._acceptors.positions)
-            acceptors = acceptors[mask]
+            acceptors = self._acceptors[mask]
 
         # find D (selected) and A (all) within cutoff distance of one another
         # min_cutoff = 1.0 as an atom cannot form a hydrogen bond with itself
@@ -155,14 +157,14 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
                             tmp_hydrogens.positions,
                             tmp_acceptors.positions,
                             box=box))
-            hbond_indices = np.where(d_h_a_angles > self.angle_cutoff)[0]
+            hbond_indices = np.where(d_h_a_angles >= self.angle_cutoff)[0]
         elif self.angle_cutoff_type == "h_d_a":
             h_d_a_angles = np.rad2deg(
                 calc_angles(tmp_hydrogens.positions,
                             tmp_donors.positions,
                             tmp_acceptors.positions,
                             box=box))
-            hbond_indices = np.where(h_d_a_angles < self.angle_cutoff)[0]
+            hbond_indices = np.where(h_d_a_angles <= self.angle_cutoff)[0]
 
         # Retrieve atoms, distances and angles of hydrogen bonds
         hbond_donors = tmp_donors[hbond_indices]
@@ -170,14 +172,9 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         hbond_acceptors = tmp_acceptors[hbond_indices]
         hbond_distances = d_a_distances[hbond_indices]
         hbond_angles = d_h_a_angles[hbond_indices]
-        if self.region is not None:
-            donor_zcoords = self._get_rel_pos(hbond_donors.positions[:, 2], z_surf)
-            hydrogen_zcoords = self._get_rel_pos(hbond_hydrogens.positions[:, 2], z_surf)
-            acceptor_zcoords = self._get_rel_pos(hbond_acceptors.positions[:, 2], z_surf)
-        else:
-            donor_zcoords = np.zeros_like(hbond_angles)
-            hydrogen_zcoords = np.zeros_like(hbond_angles)
-            acceptor_zcoords = np.zeros_like(hbond_angles)
+        donor_zcoords = self._get_rel_pos(hbond_donors.positions[:, 2], z_surf)
+        hydrogen_zcoords = self._get_rel_pos(hbond_hydrogens.positions[:, 2], z_surf)
+        acceptor_zcoords = self._get_rel_pos(hbond_acceptors.positions[:, 2], z_surf)
 
         # Store data on hydrogen bonds found at this frame
         self.results.hbonds[0].extend(
@@ -187,7 +184,6 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         self.results.hbonds[3].extend(hbond_acceptors.indices)
         self.results.hbonds[4].extend(hbond_distances)
         self.results.hbonds[5].extend(hbond_angles)
-        # TODO: modify result array
         self.results.hbonds[6].extend(donor_zcoords)
         self.results.hbonds[7].extend(hydrogen_zcoords)
         self.results.hbonds[8].extend(acceptor_zcoords)
@@ -236,14 +232,9 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
             hbond_acceptors = tmp_acceptors[hbond_indices]
             hbond_distances = d_a_distances[hbond_indices]
             hbond_angles = d_h_a_angles[hbond_indices]
-            if self.region is not None:
-                donor_zcoords = self._get_rel_pos(hbond_donors.positions[:, 2], z_surf)
-                hydrogen_zcoords = self._get_rel_pos(hbond_hydrogens.positions[:, 2], z_surf)
-                acceptor_zcoords = self._get_rel_pos(hbond_acceptors.positions[:, 2], z_surf)
-            else:
-                donor_zcoords = np.zeros_like(hbond_angles)
-                hydrogen_zcoords = np.zeros_like(hbond_angles)
-                acceptor_zcoords = np.zeros_like(hbond_angles)
+            donor_zcoords = self._get_rel_pos(hbond_donors.positions[:, 2], z_surf)
+            hydrogen_zcoords = self._get_rel_pos(hbond_hydrogens.positions[:, 2], z_surf)
+            acceptor_zcoords = self._get_rel_pos(hbond_acceptors.positions[:, 2], z_surf)
 
             # Store data on hydrogen bonds found at this frame
             self.results.hbonds[0].extend(
@@ -263,7 +254,7 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         """
         z_coords = positions[:, 2]
         abs_region = self._get_abs_region(self.region, z_surf)
-        print(abs_region)
+        #print(abs_region)
         mask_0 = z_coords >= abs_region[0][0]
         mask_1 = z_coords < abs_region[0][1]
         mask_2 = z_coords >= abs_region[1][0]
