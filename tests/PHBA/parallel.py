@@ -3,8 +3,8 @@ import time
 import MDAnalysis as mda
 from MDAnalysis import transformations as trans
 
-from watdyn.m_mda import PartialHBAnalysis
-from watdyn.parallel import parallel_exec
+from WatAnalysis.hbonds.m_mda import PartialHBAnalysis
+from WatAnalysis.parallel import parallel_exec
 
 # load trajectory
 u = mda.Universe("../input_data/interface.psf", "../input_data/trajectory.xyz")
