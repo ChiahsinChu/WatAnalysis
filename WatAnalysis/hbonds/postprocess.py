@@ -180,7 +180,7 @@ def get_graphs(hbonds_result, output_dir):
         (graph_indicator, np.full((n_node_hi), graph_id, dtype=np.int32)))
     # write graphs
     graph = graph_hi + n_nodes + 1
-    np.copyto(graphs[end_id - len(graph):-1], graph)
+    np.copyto(graphs[-1 - len(graph):-1], graph)
     n_nodes = n_nodes + n_node_hi
 
     graph_labels = np.ones((2 * n_frames), dtype=np.int32)
@@ -191,7 +191,7 @@ def get_graphs(hbonds_result, output_dir):
         os.makedirs(output_dir)
     np.savetxt(os.path.join(output_dir, "A.txt"), graphs, fmt="%d")
     np.savetxt(os.path.join(output_dir, "graph_indicator.txt"),
-               graphs,
+               graph_indicator,
                fmt="%d")
     np.savetxt(os.path.join(output_dir, "graph_labels.txt"),
                graph_labels,
