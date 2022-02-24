@@ -1,7 +1,6 @@
 """
 Functions for postprocessing of PartialHBAnalysis results
 """
-from matplotlib.pyplot import axis
 import numpy as np
 import os
 
@@ -100,7 +99,7 @@ def get_graphs(hbonds_result, output_dir):
 
     Parameters
     ----------
-    hbonds_result: (n_frame, 9)-shape List
+    hbonds_result: (n, 9)-shape List
     output_dir:
         directory to save file
     """
@@ -111,8 +110,9 @@ def get_graphs(hbonds_result, output_dir):
     u, indices = np.unique(hbonds_result[:, 0], return_index=True)
     # number of frames
     n_frames = len(u)
-    
+
     n_nodes = 0
+    graph_id = 0
     for ii in range(n_frames - 1):
         # get the hbonds result of one frame
         start_id = indices[ii]
@@ -122,37 +122,85 @@ def get_graphs(hbonds_result, output_dir):
         mask_lo, mask_hi = make_mask(single_frame_hbonds)
         d_a_pairs_lo = single_frame_hbonds[:, [1, 3]][mask_lo]
         d_a_pairs_hi = single_frame_hbonds[:, [1, 3]][mask_hi]
-        # make graph
+
+        # make graph for lower surfaces
         graph_lo, n_node_lo = make_graph(d_a_pairs_lo)
-        graph_hi, n_node_hi = make_graph(d_a_pairs_hi)
+        # write graph_indicator (graph_id)
+        graph_id = graph_id + 1
         if n_nodes == 0:
-            graph_indicator = np.ones((n_node_lo), dtype=np.int32)
+            graph_indicator = np.full((n_node_lo), graph_id, dtype=np.int32)
         else:
-            graph_indicator = np.concatenate((graph_indicator, np.full((n_node_lo), np.max(graph_indicator) + 1)))
-        # merge graph_lo/graph_hi
-        graph_hi = graph_hi + n_node_lo + 1
-        graph = np.concatenate((graph_lo, graph_hi), axis=0)
-        graph = graph + n_nodes + 1
-        np.copyto()
-        n_nodes = n_nodes + n_node_lo + n_node_hi
-        
+            graph_indicator = np.concatenate(
+                (graph_indicator, np.full((n_node_lo),
+                                          graph_id,
+                                          dtype=np.int32)))
+        # write graphs
+        graph = graph_lo + n_nodes + 1
+        np.copyto(graphs[start_id:start_id + len(graph)], graph)
+        n_nodes = n_nodes + n_node_lo
+
+        # make graph for upper surfaces
+        graph_hi, n_node_hi = make_graph(d_a_pairs_hi)
+        # write graph_indicator (graph_id)
+        graph_id = graph_id + 1
+        graph_indicator = np.concatenate(
+            (graph_indicator, np.full((n_node_hi), graph_id, dtype=np.int32)))
+        # write graphs
+        graph = graph_hi + n_nodes + 1
+        np.copyto(graphs[end_id - len(graph):end_id], graph)
+        n_nodes = n_nodes + n_node_hi
+
     # the last frame
     start_id = end_id
     single_frame_hbonds = hbonds_result[start_id:]
+    # get the hbonds result upper/lower surfaces
+    mask_lo, mask_hi = make_mask(single_frame_hbonds)
+    d_a_pairs_lo = single_frame_hbonds[:, [1, 3]][mask_lo]
+    d_a_pairs_hi = single_frame_hbonds[:, [1, 3]][mask_hi]
 
-    graph_indicator
+    # make graph for lower surfaces
+    graph_lo, n_node_lo = make_graph(d_a_pairs_lo)
+    # write graph_indicator (graph_id)
+    graph_id = graph_id + 1
+    if n_nodes == 0:
+        graph_indicator = np.full((n_node_lo), graph_id, dtype=np.int32)
+    else:
+        graph_indicator = np.concatenate(
+            (graph_indicator, np.full((n_node_lo), graph_id, dtype=np.int32)))
+    # write graphs
+    graph = graph_lo + n_nodes + 1
+    np.copyto(graphs[start_id:start_id + len(graph)], graph)
+    n_nodes = n_nodes + n_node_lo
+
+    # make graph for upper surfaces
+    graph_hi, n_node_hi = make_graph(d_a_pairs_hi)
+    # write graph_indicator (graph_id)
+    graph_id = graph_id + 1
+    graph_indicator = np.concatenate(
+        (graph_indicator, np.full((n_node_hi), graph_id, dtype=np.int32)))
+    # write graphs
+    graph = graph_hi + n_nodes + 1
+    np.copyto(graphs[end_id - len(graph):-1], graph)
+    n_nodes = n_nodes + n_node_hi
+
     graph_labels = np.ones((2 * n_frames), dtype=np.int32)
-    node_labels = np.ones_like()
+    node_labels = np.ones_like(graph_indicator, dtype=np.int32)
 
     # save files
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     np.savetxt(os.path.join(output_dir, "A.txt"), graphs, fmt="%d")
-    np.savetxt(os.path.join(output_dir, "graph_indicator.txt"), graphs, fmt="%d")
-    np.savetxt(os.path.join(output_dir, "graph_labels.txt"), graph_labels, fmt="%d")
-    np.savetxt(os.path.join(output_dir, "node_labels.txt"), node_labels, fmt="%d")
+    np.savetxt(os.path.join(output_dir, "graph_indicator.txt"),
+               graphs,
+               fmt="%d")
+    np.savetxt(os.path.join(output_dir, "graph_labels.txt"),
+               graph_labels,
+               fmt="%d")
+    np.savetxt(os.path.join(output_dir, "node_labels.txt"),
+               node_labels,
+               fmt="%d")
 
-        
+
 def make_graph(d_a_pairs):
     """
     Parameter
@@ -173,6 +221,7 @@ def make_graph(d_a_pairs):
     graph = np.reshape(graph, (-1, 2))
     return graph, n_node
 
+
 def make_mask(single_frame_hbonds):
     """
     make masks for the D-A pairs at upper/lower surface
@@ -180,3 +229,31 @@ def make_mask(single_frame_hbonds):
     mask_lo = (single_frame_hbonds[:, -1] > 0)
     mask_hi = (mask_lo == False)
     return mask_lo, mask_hi
+
+
+def get_n_d_a_pairs(hbonds_result, donor_region=None, acceptor_region=None):
+    """
+    Get the number of specific D-A pairs
+    e.g., donor(water A)-acceptor(water B)
+
+    Parameters
+    ----------
+    hbonds_result: (n, 9)-shape List
+    donor_region: (2, )-shape List
+        z region for donor of interest
+    acceptor_region: (2, )-shape List
+        z region for acceptor of interest
+
+    Return
+    -------
+    n_pairs: int
+        total number of given D-A pairs
+    """
+    z_donor = np.abs(hbonds_result[:, -3])
+    donor_mask = (z_donor >= donor_region[0]) & (z_donor < donor_region[1])
+    z_acceptor = np.abs(hbonds_result[:, -1])
+    acceptor_mask = (z_acceptor >= acceptor_region[0]) & (z_acceptor <
+                                                          acceptor_region[1])
+    mask = donor_mask & acceptor_mask
+    n_pairs = len(np.zeros_like(z_donor)[mask])
+    return n_pairs
