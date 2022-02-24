@@ -14,8 +14,17 @@ This package includes:
 - [ ] code for trajectory wrapping
 - [x] update region-specific function (donor/acceptor)
 - [x] add z-coord of HB into results
-- [ ] add graph-generation module (directed/undirected)
+- [x] add graph-generation module (undirected)
+  - [ ] add attributes of edge(bond length)/node(z w.r.t surface)
 
-**temporary note**
+## Installation
 
-- generate the txt files for graph connection
+```bash
+python setpy.py install
+# if you want to modify the code later, use the developer mode
+#python setup.py develop
+```
+
+## User Guide
+
+## Developer Guide
