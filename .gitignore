@@ -10,3 +10,4 @@ __pycache__
 .history
 .ipynb_checkpoints
 trajectory.xyz
+*npy
