@@ -1,8 +1,10 @@
-from tkinter.messagebox import NO
+import os
+from scipy import stats
 import numpy as np
 from MDAnalysis.transformations import translate, wrap
 from MDAnalysis.analysis.base import AnalysisBase
 
+from mdadist.distances import calc_bonds_vector, distance_array
 
 NA = 6.02214076E+23
 ANG_TO_CM = 1E-08
@@ -30,7 +32,7 @@ def center(universe, elem_type, cell=None):
     workflow = [translate([0, 0, -metal_com_z]), wrap(universe.atoms)]
     universe.trajectory.add_transformations(*workflow)
     #return universe
-    
+
 class Density1DAnalysis(AnalysisBase):
     """
     Parameters
@@ -51,13 +53,12 @@ class Density1DAnalysis(AnalysisBase):
                  delta=0.1,
                  mass=18.015):
         super().__init__(universe.trajectory)
-        self._atomgroup = universe.select_atoms(water_sel)
         self._cell = universe.dimensions
         self._dim = dim
         self._delta = delta
         self._mass = mass
-        self._natoms = len(self._atomgroup)
-        self._mask = self._atomgroup.indices
+        self._nwat = len(universe.select_atoms(water_sel))
+        self._O_ids = universe.select_atoms(water_sel).indices
 
         # check cell
         if self._cell is None:
@@ -74,12 +75,12 @@ class Density1DAnalysis(AnalysisBase):
         dims = np.delete(dims, self._dim)
         self.cross_area = dims[0] * dims[1] * np.sin(self._cell[self._dim + 3] / 180 * np.pi)
         # placeholder
-        self.all_coords = np.zeros((self.n_frames, self._natoms),
+        self.all_coords = np.zeros((self.n_frames, self._nwat),
                                     dtype=np.float32)
 
 
     def _single_frame(self):
-        ts_coord = self._ts.positions[self._mask].T[self._dim]
+        ts_coord = self._ts.positions[self._O_ids].T[self._dim]
         np.copyto(self.all_coords[self._frame_index], ts_coord)
 
 
@@ -120,6 +121,15 @@ class Density1DAnalysis(AnalysisBase):
                     "in parallel, block result has not been defined or no data output!"
                 )
             return block_result
+
+
+    def to_file(self, output_file):
+        output = np.concatenate(([self.results['grids']], [self.results['density']]), axis=0)
+        output = np.transpose(output)
+        if os.path.splitext(output_file)[-1][1:] == "npy":
+            np.save(output_file, output)
+        else:
+            np.savetxt(output_file, output)
 
 
     def _para_block_result(self, ):
@@ -177,7 +187,7 @@ class InterfaceWatDensity(Density1DAnalysis):
         np.copyto(self.surf_coords[self._frame_index], ts_surf_region)
 
         # save water coords w.r.t. lower surfaces
-        _ts_coord = self._ts.positions[self._mask].T[self._dim]
+        _ts_coord = self._ts.positions[self._O_ids].T[self._dim]
         ts_coord = self._ref_water(_ts_coord, ts_surf_region[0])
         np.copyto(self.all_coords[self._frame_index], ts_coord)
 
@@ -185,7 +195,8 @@ class InterfaceWatDensity(Density1DAnalysis):
     def _conclude(self):
         surf_lo_ave = self.surf_coords[:, 0].mean(axis=0)
         surf_hi_ave = self.surf_coords[:, 1].mean(axis=0)
-        bins = np.arange(0, (surf_hi_ave - surf_lo_ave + self._delta), self._delta)
+        self._surf_space = surf_hi_ave - surf_lo_ave
+        bins = np.arange(0, (self._surf_space + self._delta), self._delta)
         
         grids, density = self._get_density(self.all_coords, bins)
         self.results = {}
@@ -203,7 +214,6 @@ class InterfaceWatDensity(Density1DAnalysis):
 
         n_grids = 0
         for single_data in rawdata:
-            
             if n_grids == 0 or len(single_data['grids']) < n_grids:
                 n_grids = len(single_data['grids'])
         
@@ -248,6 +258,7 @@ class InterfaceWatDensity(Density1DAnalysis):
             self._surf_ids = np.array([lower_slab_ids, upper_slab_ids], dtype=int)
         return self._surf_ids
 
+
     def _get_surf_region(self, _coord_lo, _coord_hi):
         """
         Return:
@@ -271,6 +282,7 @@ class InterfaceWatDensity(Density1DAnalysis):
 
         return np.array([coord_lo, coord_hi], dtype=float)
 
+
     def _ref_water(self, water_coords, surf_lo):
         """
         water coord w.r.t. lower surfaces
@@ -282,5 +294,90 @@ class InterfaceWatDensity(Density1DAnalysis):
         return water_coords
 
 
+class InterfaceWatOri(InterfaceWatDensity):
+    """
+    TBC
+    """
+    def __init__(self, universe, O_sel='name O', H_sel='name H', dim=2, delta=0.1, update_pairs=False, **kwargs):
+        super().__init__(universe, O_sel, dim, delta, surf_ids=kwargs.get('surf_ids', None), slab_sel=kwargs.get('slab_sel', None), surf_natoms=kwargs.get('surf_natoms', None))
+        self._H_ids = universe.select_atoms(H_sel).indices
+        if len(self._H_ids) != self._nwat * 2:
+            raise AttributeError('Only pure water has been supported yet.')
+        self._update_pairs = update_pairs
+        self.pairs = kwargs.get('pairs', None)
+        if self.pairs is None:
+            self._get_pairs(self._trajectory[0].positions[self._O_ids], self._trajectory[0].positions[self._H_ids])
 
+
+    def _prepare(self):
+        super()._prepare()
+        self.all_oris = np.zeros((self.n_frames, self._nwat),
+                                    dtype=np.float32)
+
+
+    def _single_frame(self):
+        super()._single_frame()
+        ts_O_coord = self._ts.positions[self._O_ids]
+        ts_H_coord = self._ts.positions[self._H_ids]
+        if self._update_pairs:
+            self._get_pairs(ts_O_coord, ts_H_coord)
+        ts_water_oris = self._get_water_ori(ts_O_coord, ts_H_coord)
+        np.copyto(self.all_oris[self._frame_index], ts_water_oris)
+
+
+    def _conclude(self):
+        super()._conclude()
+        all_coords = np.reshape(self.all_coords, -1)
+        all_oris = np.reshape(self.all_oris, -1)
+        bins = np.arange(0, (self._surf_space + self._delta), self._delta)
+        water_cos, bin_edges, binnumber = stats.binned_statistic(x=all_coords, value=all_oris, bins=bins)
+        water_cos = (water_cos - water_cos[np.arange(len(water_cos)-1, -1, -1)])[:len(water_cos) // 2] / 2
+        self.results['ori_dipole'] = water_cos * self.results['density']
+
+    def _parallel_conclude(self, rawdata):
+        method_attr = rawdata[-1]
+        del rawdata[-1]
+        self.start = method_attr[0]
+        self.stop = method_attr[1]
+        self.step = method_attr[2]
+        self.frames = np.arange(self.start, self.stop, self.step)
+
+        n_grids = 0
+        for single_data in rawdata:
+            if n_grids == 0 or len(single_data['grids']) < n_grids:
+                n_grids = len(single_data['grids'])
         
+        _density = []
+        _grids = []
+        _ori_dipole = []
+        for single_data in rawdata:
+            _density.append(single_data['density'][: n_grids])
+            _grids.append(single_data['grids'][: n_grids])
+            _ori_dipole.append(single_data['ori_dipole'][: n_grids])
+        self.results['grids'] = np.mean(_grids, axis=0) 
+        self.results['density'] = np.mean(_density, axis=0)
+        self.results['ori_dipole'] = np.mean(_ori_dipole, axis=0)
+
+        return "FINISH PARA CONCLUDE"
+
+
+    def _get_water_ori(self, O_coord, H_coord):
+        """
+        TBC
+        """
+        water_oris = np.zeros((self._nwat, 3), dtype=np.float32)
+        for O_id, H_ids in enumerate(self.pairs):
+            tmp_vec = np.empty((2, 3))
+            calc_bonds_vector(O_coord[O_id],
+                              H_coord[H_ids],
+                              box=self._cell,
+                              result=tmp_vec)
+            tmp_vec = np.mean(tmp_vec, axis=0)
+            np.copyto(water_oris[O_id], tmp_vec[self._dim] / np.linalg.norm(tmp_vec))
+        return water_oris
+
+    def _get_pairs(self, O_coords, H_coords):
+        all_distances = np.empty((self._nwat, self._nwat * 2), dtype=float)
+        distance_array(O_coords, H_coords, box=self._cell, result=all_distances)
+        #self.pairs = self._H_ids[np.argsort(all_distances, axis=-1)[:, :2]]
+        self.pairs = np.argsort(all_distances, axis=-1)[:, :2]
