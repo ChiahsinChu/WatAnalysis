@@ -1,0 +1,6 @@
+/home/jxzhu/.conda/envs/band-alignment/lib/python3.9/site-packages/MDAnalysis/coordinates/base.py:892: UserWarning: Reader has no dt information, set to 1.0 ps
+  warnings.warn("Reader has no dt information, set to 1.0 ps")
+/home/jxzhu/.conda/envs/band-alignment/lib/python3.9/site-packages/MDAnalysis/coordinates/base.py:892: UserWarning: Reader has no dt information, set to 1.0 ps
+  warnings.warn("Reader has no dt information, set to 1.0 ps")
+/home/jxzhu/.conda/envs/band-alignment/lib/python3.9/site-packages/MDAnalysis/coordinates/base.py:892: UserWarning: Reader has no dt information, set to 1.0 ps
+  warnings.warn("Reader has no dt information, set to 1.0 ps")
