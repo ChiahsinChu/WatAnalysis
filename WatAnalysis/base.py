@@ -3,8 +3,10 @@ from scipy import stats
 import numpy as np
 from MDAnalysis.transformations import translate, wrap
 from MDAnalysis.analysis.base import AnalysisBase
+from MDAnalysis.lib.distances import capped_distance
 
-from mdadist.distances import calc_bonds_vector, distance_array
+from mdadist.distances import calc_bonds_vector
+
 
 NA = 6.02214076E+23
 ANG_TO_CM = 1E-08
@@ -298,16 +300,16 @@ class InterfaceWatOri(InterfaceWatDensity):
     """
     TBC
     """
-    def __init__(self, universe, O_sel='name O', H_sel='name H', dim=2, delta=0.1, update_pairs=False, **kwargs):
+    def __init__(self, universe, O_sel='name O', H_sel='name H', dim=2, delta=0.1, OH_cutoff=1.3, update_pairs=False, **kwargs):
         super().__init__(universe, O_sel, dim, delta, surf_ids=kwargs.get('surf_ids', None), slab_sel=kwargs.get('slab_sel', None), surf_natoms=kwargs.get('surf_natoms', None))
         self._H_ids = universe.select_atoms(H_sel).indices
         if len(self._H_ids) != self._nwat * 2:
             raise AttributeError('Only pure water has been supported yet.')
         self._update_pairs = update_pairs
         self.pairs = kwargs.get('pairs', None)
+        self._OH_cutoff = OH_cutoff
         if self.pairs is None:
-            self._get_pairs(self._trajectory[0].positions[self._O_ids], self._trajectory[0].positions[self._H_ids])
-
+            self._get_OH_pairs(self._trajectory[0].positions[self._O_ids], self._trajectory[0].positions[self._H_ids])
 
     def _prepare(self):
         super()._prepare()
@@ -330,9 +332,10 @@ class InterfaceWatOri(InterfaceWatDensity):
         all_coords = np.reshape(self.all_coords, -1)
         all_oris = np.reshape(self.all_oris, -1)
         bins = np.arange(0, (self._surf_space + self._delta), self._delta)
-        water_cos, bin_edges, binnumber = stats.binned_statistic(x=all_coords, value=all_oris, bins=bins)
+        water_cos, bin_edges, binnumber = stats.binned_statistic(x=all_coords, values=all_oris, bins=bins)
         water_cos = (water_cos - water_cos[np.arange(len(water_cos)-1, -1, -1)])[:len(water_cos) // 2] / 2
         self.results['ori_dipole'] = water_cos * self.results['density']
+
 
     def _parallel_conclude(self, rawdata):
         method_attr = rawdata[-1]
@@ -365,19 +368,27 @@ class InterfaceWatOri(InterfaceWatDensity):
         """
         TBC
         """
-        water_oris = np.zeros((self._nwat, 3), dtype=np.float32)
-        for O_id, H_ids in enumerate(self.pairs):
-            tmp_vec = np.empty((2, 3))
-            calc_bonds_vector(O_coord[O_id],
-                              H_coord[H_ids],
-                              box=self._cell,
-                              result=tmp_vec)
-            tmp_vec = np.mean(tmp_vec, axis=0)
-            np.copyto(water_oris[O_id], tmp_vec[self._dim] / np.linalg.norm(tmp_vec))
+        # get all OH bond vectors
+        water_oris = np.zeros((self._nwat))
+        OH_vecs = np.zeros((len(self.pairs[0]), 3))
+        calc_bonds_vector(O_coord[self.pairs[0]],
+                          H_coord[self.pairs[1]],
+                          box=self._cell,
+                          result=OH_vecs)
+        # get the number of H assigned to each O
+        ids, counts = np.unique(self.pairs[0], return_counts=True)
+        # calculate the cosine of dipole
+        for ii, id, count in zip(np.arange(self._nwat), ids, counts):
+            tmp_vec = np.sum(OH_vecs[id:(id+count)], axis=0)
+            water_oris[ii] = tmp_vec[self._dim] / np.linalg.norm(tmp_vec)
         return water_oris
 
-    def _get_pairs(self, O_coords, H_coords):
-        all_distances = np.empty((self._nwat, self._nwat * 2), dtype=float)
-        distance_array(O_coords, H_coords, box=self._cell, result=all_distances)
-        #self.pairs = self._H_ids[np.argsort(all_distances, axis=-1)[:, :2]]
-        self.pairs = np.argsort(all_distances, axis=-1)[:, :2]
+
+    def _get_OH_pairs(self, O_coords, H_coords):
+        O_ids, H_ids = capped_distance(
+                O_coords,
+                H_coords,
+                max_cutoff=self._OH_cutoff,
+                box=self._cell,
+                return_distances=False).T
+        self.pairs = [O_ids, H_ids]

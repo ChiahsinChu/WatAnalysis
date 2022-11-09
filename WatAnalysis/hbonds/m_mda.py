@@ -4,7 +4,6 @@ from MDAnalysis.analysis.hydrogenbonds.hbond_analysis import HydrogenBondAnalysi
 
 
 class PartialHBAnalysis(HydrogenBondAnalysis):
-
     def __init__(self,
                  universe,
                  hb_region=None,
@@ -152,26 +151,26 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
 
         # Find angles and compared with the angle cutoff
         if self.angle_cutoff_type == "d_h_a":
-            d_h_a_angles = np.rad2deg(
+            cutoff_angles = np.rad2deg(
                 calc_angles(tmp_donors.positions,
                             tmp_hydrogens.positions,
                             tmp_acceptors.positions,
                             box=box))
-            hbond_indices = np.where(d_h_a_angles >= self.angle_cutoff)[0]
+            hbond_indices = np.where(cutoff_angles >= self.angle_cutoff)[0]
         elif self.angle_cutoff_type == "h_d_a":
-            h_d_a_angles = np.rad2deg(
+            cutoff_angles = np.rad2deg(
                 calc_angles(tmp_hydrogens.positions,
                             tmp_donors.positions,
                             tmp_acceptors.positions,
                             box=box))
-            hbond_indices = np.where(h_d_a_angles <= self.angle_cutoff)[0]
+            hbond_indices = np.where(cutoff_angles <= self.angle_cutoff)[0]
 
         # Retrieve atoms, distances and angles of hydrogen bonds
         hbond_donors = tmp_donors[hbond_indices]
         hbond_hydrogens = tmp_hydrogens[hbond_indices]
         hbond_acceptors = tmp_acceptors[hbond_indices]
         hbond_distances = d_a_distances[hbond_indices]
-        hbond_angles = d_h_a_angles[hbond_indices]
+        hbond_angles = cutoff_angles[hbond_indices]
         donor_zcoords = self._get_rel_pos(hbond_donors.positions[:, 2], z_surf)
         hydrogen_zcoords = self._get_rel_pos(hbond_hydrogens.positions[:, 2],
                                              z_surf)
@@ -214,26 +213,26 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
 
             # Find angles and compared with the angle cutoff
             if self.angle_cutoff_type == "d_h_a":
-                d_h_a_angles = np.rad2deg(
+                cutoff_angles = np.rad2deg(
                     calc_angles(tmp_donors.positions,
                                 tmp_hydrogens.positions,
                                 tmp_acceptors.positions,
                                 box=box))
-                hbond_indices = np.where(d_h_a_angles > self.angle_cutoff)[0]
+                hbond_indices = np.where(cutoff_angles > self.angle_cutoff)[0]
             elif self.angle_cutoff_type == "h_d_a":
-                h_d_a_angles = np.rad2deg(
+                cutoff_angles = np.rad2deg(
                     calc_angles(tmp_hydrogens.positions,
                                 tmp_donors.positions,
                                 tmp_acceptors.positions,
                                 box=box))
-                hbond_indices = np.where(h_d_a_angles < self.angle_cutoff)[0]
+                hbond_indices = np.where(cutoff_angles < self.angle_cutoff)[0]
 
             # Retrieve atoms, distances and angles of hydrogen bonds
             hbond_donors = tmp_donors[hbond_indices]
             hbond_hydrogens = tmp_hydrogens[hbond_indices]
             hbond_acceptors = tmp_acceptors[hbond_indices]
             hbond_distances = d_a_distances[hbond_indices]
-            hbond_angles = d_h_a_angles[hbond_indices]
+            hbond_angles = cutoff_angles[hbond_indices]
             donor_zcoords = self._get_rel_pos(hbond_donors.positions[:, 2],
                                               z_surf)
             hydrogen_zcoords = self._get_rel_pos(
@@ -319,9 +318,6 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
             return block_result
 
     def _para_block_result(self, ):
-
-        # data need to be transformed, which is usually relative to values in prepare() method.
-
         return [self.results.hbonds]
 
     def _parallel_conclude(self, rawdata):
