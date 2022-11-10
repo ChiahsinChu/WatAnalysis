@@ -5,7 +5,7 @@ import numpy as np
 import os
 
 
-def count_by_time(hbonds_result, start, stop, step=1):
+def count_by_time(hbonds_result, start, stop, step=1, dt=1):
     """
     Adapted from MDA
     """
@@ -16,7 +16,13 @@ def count_by_time(hbonds_result, start, stop, step=1):
     indices /= step
     counts = np.zeros_like(np.arange(start, stop, step))
     counts[indices.astype(np.intp)] = tmp_counts
-    return np.arange(start, stop, step), counts
+    return [np.arange(start, stop, step) * dt, counts, get_cum_ave(counts)]
+
+
+def get_cum_ave(data):
+    cum_sum = data.cumsum()
+    cum_ave = cum_sum / (np.arange(len(data)) + 1)
+    return cum_ave
 
 
 def lifetime(hbonds_result,
@@ -189,7 +195,10 @@ def get_graphs(hbonds_result, output_dir):
     # save files
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    np.savetxt(os.path.join(output_dir, "A.txt"), graphs, delimiter=',', fmt="%d")
+    np.savetxt(os.path.join(output_dir, "A.txt"),
+               graphs,
+               delimiter=',',
+               fmt="%d")
     np.savetxt(os.path.join(output_dir, "graph_indicator.txt"),
                graph_indicator,
                fmt="%d")
