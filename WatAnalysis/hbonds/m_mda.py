@@ -171,11 +171,12 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         hbond_acceptors = tmp_acceptors[hbond_indices]
         hbond_distances = d_a_distances[hbond_indices]
         hbond_angles = cutoff_angles[hbond_indices]
-        donor_zcoords = self._get_rel_pos(hbond_donors.positions[:, 2], z_surf)
-        hydrogen_zcoords = self._get_rel_pos(hbond_hydrogens.positions[:, 2],
-                                             z_surf)
-        acceptor_zcoords = self._get_rel_pos(hbond_acceptors.positions[:, 2],
-                                             z_surf)
+        if self.hb_region is not None:
+            donor_zcoords = self._get_rel_pos(hbond_donors.positions[:, 2], z_surf)
+            hydrogen_zcoords = self._get_rel_pos(hbond_hydrogens.positions[:, 2],
+                                                z_surf)
+            acceptor_zcoords = self._get_rel_pos(hbond_acceptors.positions[:, 2],
+                                                z_surf)
 
         # Store data on hydrogen bonds found at this frame
         self.results.hbonds[0].extend(
@@ -185,11 +186,16 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         self.results.hbonds[3].extend(hbond_acceptors.indices)
         self.results.hbonds[4].extend(hbond_distances)
         self.results.hbonds[5].extend(hbond_angles)
-        self.results.hbonds[6].extend(donor_zcoords)
-        self.results.hbonds[7].extend(hydrogen_zcoords)
-        self.results.hbonds[8].extend(acceptor_zcoords)
 
-        if self.hb_region is not None:
+        if self.hb_region is None:
+            placeholder = np.zeros_like(hbond_angles).tolist()
+            self.results.hbonds[6].extend(placeholder)
+            self.results.hbonds[7].extend(placeholder)
+            self.results.hbonds[8].extend(placeholder)
+        else:
+            self.results.hbonds[6].extend(donor_zcoords)
+            self.results.hbonds[7].extend(hydrogen_zcoords)
+            self.results.hbonds[8].extend(acceptor_zcoords)
             # consider D(not selected)-A(selected) pair
             d_a_indices, d_a_distances = capped_distance(
                 left_donors.positions,
