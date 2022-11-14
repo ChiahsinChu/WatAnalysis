@@ -140,7 +140,7 @@ class MSD(MeanSquareDisplacement):
         # the mean, so n = 0.
         return val_perp / n if n > 0 else 0, val_para / n if n > 0 else 0
 
-    def _getMeanOnePoint(self, universe, selection1, selection_str, dt,
+    def _getMeanOnePoint(self, universe, selection1, dt,
                          totalFrames):
         """
         This function gets one point of the plot C_vec vs t. It's uses the
