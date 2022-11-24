@@ -140,8 +140,7 @@ class MSD(MeanSquareDisplacement):
         # the mean, so n = 0.
         return val_perp / n if n > 0 else 0, val_para / n if n > 0 else 0
 
-    def _getMeanOnePoint(self, universe, selection1, dt,
-                         totalFrames):
+    def _getMeanOnePoint(self, universe, selection1, dt, totalFrames):
         """
         This function gets one point of the plot C_vec vs t. It's uses the
         _getOneDeltaPoint() function to calculate the average.
@@ -186,7 +185,7 @@ class MSD(MeanSquareDisplacement):
         self.timeseries_para = []
         for dt in list(range(1, self.dtmax + 1)):
             output_perp, output_para = self._getMeanOnePoint(
-                self.universe, selection_out, self.selection, dt, self.tf)
+                self.universe, selection_out, dt, self.tf)
             self.timeseries_perp.append(output_perp)
             self.timeseries_para.append(output_para)
         self.timeseries = np.array(self.timeseries_para) + np.array(
@@ -195,7 +194,7 @@ class MSD(MeanSquareDisplacement):
 
 class SP(SurvivalProbability):
 
-    def __init__(self, universe, select, verbose=False, **kwargs):
+    def __init__(self, universe, verbose=False, **kwargs):
         select = make_selection(**kwargs)
-        print("selection: ", select)
+        # print("selection: ", select)
         super().__init__(universe, select, verbose)
