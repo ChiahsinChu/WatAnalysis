@@ -4,6 +4,8 @@ Functions for postprocessing of PartialHBAnalysis results
 import numpy as np
 import os
 
+from WatAnalysis.utils import get_cum_ave
+
 
 def count_by_time(hbonds_result, start, stop, step=1, dt=1):
     """
@@ -17,12 +19,6 @@ def count_by_time(hbonds_result, start, stop, step=1, dt=1):
     counts = np.zeros_like(np.arange(start, stop, step))
     counts[indices.astype(np.intp)] = tmp_counts
     return [np.arange(start, stop, step) * dt, counts, get_cum_ave(counts)]
-
-
-def get_cum_ave(data):
-    cum_sum = data.cumsum()
-    cum_ave = cum_sum / (np.arange(len(data)) + 1)
-    return cum_ave
 
 
 def lifetime(hbonds_result,
