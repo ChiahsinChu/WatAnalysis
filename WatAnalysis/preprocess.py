@@ -4,7 +4,7 @@ import numpy as np
 def make_selection(
     sel_region,
     surf_ids,
-    c_ag=None,
+    c_ag="name O",
     select_all=False,
     bonded=False,
 ):
