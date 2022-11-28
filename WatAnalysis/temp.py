@@ -1,4 +1,3 @@
-from ase import io
 import numpy as np
 from MDAnalysis.analysis.base import AnalysisBase
 
@@ -15,7 +14,7 @@ AU_2_M = AU_2_ANGSTROM * ANGSTROM_2_M
 AU_2_S = 2.41888432650478E-17
 # Atomic mass unit [kg]
 AMU = 1.66053878200000E-27
-
+PS_2_S = 1E-12
 
 
 class SelectedTemperature(AnalysisBase):
@@ -27,41 +26,65 @@ class SelectedTemperature(AnalysisBase):
 
     def __init__(self,
                  ag,
-                 velocities,
+                 u_vels=None,
                  zero_p=False,
-                 v_format="cp2k",
+                 v_format="xyz",
+                 unit="au",
                  verbose=False):
         self.ag = ag
         trajectory = ag.universe.trajectory
         super().__init__(trajectory, verbose=verbose)
         self.n_frames = len(trajectory)
-        self.v2 = np.sum(velocities * velocities, axis=-1)
+        if u_vels is not None:
+            self.vels = u_vels.trajectory
+        else:
+            self.vels = None
         self.zero_p = zero_p
         self.v_fmt = v_format
+        self.unit = unit
 
     def _prepare(self):
-        self.temperature = np.zeros((self.n_frames), dtype=np.int32)
+        self.temperature = np.zeros((self.n_frames), dtype=np.float64)
 
     def _single_frame(self):
-        ts_sel_ids = self.ag.indices
-        ts_vels = self.v2[self._frame_index][ts_sel_ids]
+        # u.trajectory[ii].positions
+        if self.vels is None:
+            ts_vels = self._ts.velocities
+        else:
+            ts_vels = self.vels[self._frame_index].positions
+        ts_vels2 = np.sum(ts_vels * ts_vels, axis=-1)
+        ts_vels2 = ts_vels2[self.ag.indices]
         ts_masses = self.ag.masses
         if self.zero_p:
             ts_dgf = 3 * len(self.ag) - 3
         else:
             ts_dgf = 3 * len(self.ag)
-        self.temperature = np.sum(ts_vels * ts_masses) / ts_dgf
+        self.temperature[self._frame_index] = np.sum(
+            ts_vels2 * ts_masses) / ts_dgf
 
     def _conclude(self):
-        if self.v_fmt == "cp2k":
-            self.temperature = self.temperature * AMU * (AU_2_M / AU_2_S)**2 / B_CONST
+        if self.unit == "au":
+            prefactor = AMU * (AU_2_M / AU_2_S)**2 / B_CONST
+            # print("au prefactor: ", prefactor)
+        elif self.unit == "metal":
+            prefactor = AMU * (ANGSTROM_2_M / PS_2_S)**2 / B_CONST
+        else:
+            raise AttributeError("Unsupported unit %s" % self.unit)
+        self.temperature *= prefactor
         return self.temperature
 
 
 class InterfaceTemperature(SelectedTemperature):
 
-    def __init__(self, universe, velocities, verbose=False, **kwargs):
+    def __init__(self,
+                 universe,
+                 u_vels=None,
+                 zero_p=False,
+                 v_format="xyz",
+                 unit="au",
+                 verbose=False,
+                 **kwargs):
         select = make_selection(**kwargs)
         # print("selection: ", select)
-        super().__init__(universe.select_atoms(select, updating=True),
-                         velocities, verbose)
+        super().__init__(universe.select_atoms(select, updating=True), u_vels,
+                         zero_p, v_format, unit, verbose)
