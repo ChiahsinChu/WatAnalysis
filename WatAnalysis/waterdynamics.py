@@ -33,7 +33,6 @@ class AD(AngularDistribution):
         select = make_selection_two(**kwargs)
         # print("selection: ", select)
         super().__init__(universe, select, bins, nproc, axis)
-        # TODO: check if updating works
         self.updating = updating
 
     def _getHistogram(self, universe, selection, bins, axis):
@@ -68,36 +67,63 @@ class AD(AngularDistribution):
 
         selection = self._selection_serial(self.universe, self.selection_str)
 
-        self.graph = []
+        self.graph = {}
         output = self._getHistogram(self.universe, selection, self.bins,
                                     self.axis)
         # this is to format the exit of the file
         # maybe this output could be improved
-        listcosOH = [list(output[0][1]), list(output[0][0])]
-        listcosHH = [list(output[1][1]), list(output[1][0])]
-        listcosdip = [list(output[2][1]), list(output[2][0])]
-        listOH = [list(output[3][1]), list(output[3][0])]
-        listHH = [list(output[4][1]), list(output[4][0])]
-        listdip = [list(output[5][1]), list(output[5][0])]
+        self.graph['cosOH'] = np.transpose(
+            np.concatenate(
+                ([output[0][1][:-1] + (output[0][1][1] - output[0][1][0]) / 2],
+                 [output[0][0]])))
+        self.graph['cosHH'] = np.transpose(
+            np.concatenate(
+                ([output[1][1][:-1] + (output[1][1][1] - output[1][0][0]) / 2],
+                 [output[1][0]])))
+        self.graph['cosD'] = np.transpose(
+            np.concatenate(
+                ([output[2][1][:-1] + (output[2][1][1] - output[2][1][0]) / 2],
+                 [output[2][0]])))
+        self.graph['OH'] = np.transpose(
+            np.concatenate(
+                ([output[3][1][:-1] + (output[3][1][1] - output[3][1][0]) / 2],
+                 [output[3][0]])))
+        self.graph['HH'] = np.transpose(
+            np.concatenate(
+                ([output[4][1][:-1] + (output[4][1][1] - output[4][1][0]) / 2],
+                 [output[4][0]])))
+        self.graph['D'] = np.transpose(
+            np.concatenate(
+                ([output[5][1][:-1] + (output[5][1][1] - output[5][1][0]) / 2],
+                 [output[5][0]])))
 
-        self.graph.append(self._hist2column(listcosOH))
-        self.graph.append(self._hist2column(listcosHH))
-        self.graph.append(self._hist2column(listcosdip))
-        self.graph.append(self._hist2column(listOH))
-        self.graph.append(self._hist2column(listHH))
-        self.graph.append(self._hist2column(listdip))
+        # listcosOH = [list(output[0][1]), list(output[0][0])]
+        # listcosHH = [list(output[1][1]), list(output[1][0])]
+        # listcosdip = [list(output[2][1]), list(output[2][0])]
+        # listOH = [list(output[3][1]), list(output[3][0])]
+        # listHH = [list(output[4][1]), list(output[4][0])]
+        # listdip = [list(output[5][1]), list(output[5][0])]
+
+        # self.graph.append(self._hist2column(listcosOH))
+        # self.graph.append(self._hist2column(listcosHH))
+        # self.graph.append(self._hist2column(listcosdip))
+        # self.graph.append(self._hist2column(listOH))
+        # self.graph.append(self._hist2column(listHH))
+        # self.graph.append(self._hist2column(listdip))
 
     def _selection_serial(self, universe, l_selection_str):
         selection = []
         for ts in ProgressBar(universe.trajectory,
                               verbose=True,
                               total=universe.trajectory.n_frames):
-            selection.append(
-                universe.select_atoms(l_selection_str[0],
-                                      updating=self.updating))
-            selection.append(
-                universe.select_atoms(l_selection_str[1],
-                                      updating=self.updating))
+            tmp_ag = universe.select_atoms(l_selection_str[0],
+                                           updating=self.updating)
+            tmp_ag.unwrap()
+            selection.append(tmp_ag)
+            tmp_ag = universe.select_atoms(l_selection_str[1],
+                                           updating=self.updating)
+            tmp_ag.unwrap()
+            selection.append(tmp_ag)
         return selection
 
 
