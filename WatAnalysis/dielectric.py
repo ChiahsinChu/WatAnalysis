@@ -60,8 +60,7 @@ class InverseDielectricConstant(AnalysisBase):
         if self.make_whole:
             self.atoms.unwrap()
 
-        M = np.dot(self.atoms.charges,
-                   self.atoms.positions)[self.axis] / volume
+        M = np.dot(self.atoms.charges, self.atoms.positions)[self.axis]
         self.results.M += M
         self.results.M2 += M * M
 
