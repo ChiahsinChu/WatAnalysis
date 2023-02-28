@@ -1,13 +1,10 @@
 import numpy as np
+from MDAnalysis.analysis.base import AnalysisBase
+from MDAnalysis.analysis.waterdynamics import (MeanSquareDisplacement,
+                                               SurvivalProbability,
+                                               WaterOrientationalRelaxation)
 
-from MDAnalysis.analysis.waterdynamics import WaterOrientationalRelaxation
-from MDAnalysis.analysis.waterdynamics import AngularDistribution
-from MDAnalysis.analysis.waterdynamics import MeanSquareDisplacement
-from MDAnalysis.analysis.waterdynamics import SurvivalProbability
-
-from MDAnalysis.lib.log import ProgressBar
-
-from WatAnalysis.preprocess import make_selection, make_selection_two
+from WatAnalysis.preprocess import make_selection
 
 
 class WOR(WaterOrientationalRelaxation):
@@ -21,112 +18,127 @@ class WOR(WaterOrientationalRelaxation):
         super().__init__(universe, select, t0, tf, dtmax, nproc)
 
 
-class AD(AngularDistribution):
+# class MSD(AnalysisBase):
+#     def __init__(self, universe, t0, tf, dtmax, perp="z", verbose=False, **kwargs):
+#         self.universe = universe
+#         trajectory = universe.trajectory
+#         super().__init__(trajectory, verbose=verbose)
 
-    def __init__(self,
-                 universe,
-                 bins=40,
-                 nproc=1,
-                 axis="z",
-                 updating=True,
-                 **kwargs):
-        select = make_selection_two(**kwargs)
-        # print("selection: ", select)
-        super().__init__(universe, select, bins, nproc, axis)
-        self.updating = updating
+#         select = make_selection(**kwargs)
+#         # print("selection: ", select)
+#         self.n_frames = len(trajectory)
+#         self.ag = universe.select_atoms(select, updating=True)
 
-    def _getHistogram(self, universe, selection, bins, axis):
-        """
-        This function gets a normalized histogram of the cos(theta) values. It
-        return a list of list.
-        """
-        a_lo = self._getCosTheta(universe, selection[::2], axis)
-        a_hi = self._getCosTheta(universe, selection[1::2], axis)
-        # print(np.shape(a_lo))
-        # print(np.shape(a_hi))
+#         self.selection = select
+#         self.t0 = t0
+#         self.tf = tf
+#         self.dtmax = dtmax
+#         # TODO: exception capture
+#         perp_dict = {'x': 0, 'y': 1, 'z': 2}
+#         self.perp = perp_dict[perp]
 
-        cosThetaOH = np.concatenate([np.array(a_lo[0]), -np.array(a_hi[0])])
-        cosThetaHH = np.concatenate([np.array(a_lo[1]), -np.array(a_hi[1])])
-        cosThetadip = np.concatenate([np.array(a_lo[2]), -np.array(a_hi[2])])
-        ThetaOH = np.arccos(cosThetaOH) / np.pi * 180
-        ThetaHH = np.arccos(cosThetaHH) / np.pi * 180
-        Thetadip = np.arccos(cosThetadip) / np.pi * 180
-        histInterval = bins
-        histcosThetaOH = np.histogram(cosThetaOH, histInterval, density=True)
-        histcosThetaHH = np.histogram(cosThetaHH, histInterval, density=True)
-        histcosThetadip = np.histogram(cosThetadip, histInterval, density=True)
-        histThetaOH = np.histogram(ThetaOH, histInterval, density=True)
-        histThetaHH = np.histogram(ThetaHH, histInterval, density=True)
-        histThetadip = np.histogram(Thetadip, histInterval, density=True)
+#     def _prepare(self):
+#         self.timeseries = []
+    
+#     def _single_frame(self):
+#         for dt in list(range(1, self.dtmax + 1)):
+#             repInd = self._repeatedIndex(selection1, dt, totalFrames)
+#             sumsdt = 0
+#             n = 0.0
+#             sumDeltaO = 0.0
+#             valOList = []
 
-        return (histcosThetaOH, histcosThetaHH, histcosThetadip, histThetaOH,
-                histThetaHH, histThetadip)
+#             for j in range(totalFrames // dt - 1):
+#                 a = self._getOneDeltaPoint(universe, repInd, j, sumsdt, dt)
+#                 sumDeltaO += a
+#                 valOList.append(a)
+#                 sumsdt += dt
+#                 n += 1
 
-    def run(self, **kwargs):
-        """Function to evaluate the angular distribution of cos(theta)"""
+#             # return sumDeltaO / n if n > 0 else 0
 
-        selection = self._selection_serial(self.universe, self.selection_str)
+#             output = self._getMeanOnePoint(self.universe, selection_out,
+#                                            self.selection, dt, self.tf)
+#             self.timeseries.append(output)
 
-        self.graph = {}
-        output = self._getHistogram(self.universe, selection, self.bins,
-                                    self.axis)
-        # this is to format the exit of the file
-        # maybe this output could be improved
-        self.graph['cosOH'] = np.transpose(
-            np.concatenate(
-                ([output[0][1][:-1] + (output[0][1][1] - output[0][1][0]) / 2],
-                 [output[0][0]])))
-        self.graph['cosHH'] = np.transpose(
-            np.concatenate(
-                ([output[1][1][:-1] + (output[1][1][1] - output[1][0][0]) / 2],
-                 [output[1][0]])))
-        self.graph['cosD'] = np.transpose(
-            np.concatenate(
-                ([output[2][1][:-1] + (output[2][1][1] - output[2][1][0]) / 2],
-                 [output[2][0]])))
-        self.graph['OH'] = np.transpose(
-            np.concatenate(
-                ([output[3][1][:-1] + (output[3][1][1] - output[3][1][0]) / 2],
-                 [output[3][0]])))
-        self.graph['HH'] = np.transpose(
-            np.concatenate(
-                ([output[4][1][:-1] + (output[4][1][1] - output[4][1][0]) / 2],
-                 [output[4][0]])))
-        self.graph['D'] = np.transpose(
-            np.concatenate(
-                ([output[5][1][:-1] + (output[5][1][1] - output[5][1][0]) / 2],
-                 [output[5][0]])))
+#     def _conclude(self):
+#         pass
 
-        # listcosOH = [list(output[0][1]), list(output[0][0])]
-        # listcosHH = [list(output[1][1]), list(output[1][0])]
-        # listcosdip = [list(output[2][1]), list(output[2][0])]
-        # listOH = [list(output[3][1]), list(output[3][0])]
-        # listHH = [list(output[4][1]), list(output[4][0])]
-        # listdip = [list(output[5][1]), list(output[5][0])]
+#     def _repeatedIndex(self, selection, dt, totalFrames):
+#         """
+#         Indicate the comparation between all the t+dt.
+#         The results is a list of list with all the repeated index per frame
+#         (or time).
 
-        # self.graph.append(self._hist2column(listcosOH))
-        # self.graph.append(self._hist2column(listcosHH))
-        # self.graph.append(self._hist2column(listcosdip))
-        # self.graph.append(self._hist2column(listOH))
-        # self.graph.append(self._hist2column(listHH))
-        # self.graph.append(self._hist2column(listdip))
+#         - Ex: dt=1, so compare frames (1,2),(2,3),(3,4)...
+#         - Ex: dt=2, so compare frames (1,3),(3,5),(5,7)...
+#         - Ex: dt=3, so compare frames (1,4),(4,7),(7,10)...
+#         """
+#         rep = []
+#         for i in range(int(round((totalFrames - 1) / float(dt)))):
+#             if (dt * i + dt < totalFrames):
+#                 rep.append(
+#                     self._sameMolecTandDT(selection, dt * i, (dt * i) + dt))
+#         return rep
 
-    def _selection_serial(self, universe, l_selection_str):
-        selection = []
-        for ts in ProgressBar(universe.trajectory,
-                              verbose=True,
-                              total=universe.trajectory.n_frames):
-            tmp_ag = universe.select_atoms(l_selection_str[0],
-                                           updating=self.updating)
-            tmp_ag.unwrap()
-            selection.append(tmp_ag)
-            tmp_ag = universe.select_atoms(l_selection_str[1],
-                                           updating=self.updating)
-            tmp_ag.unwrap()
-            selection.append(tmp_ag)
-        return selection
+#     def _getOneDeltaPoint(self, universe, repInd, i, t0, dt):
+#         """
+#         Gives one point to calculate the mean and gets one point of the plot
+#         C_vect vs t.
+
+#         - Ex: t0=1 and dt=1 so calculate the t0-dt=1-2 interval.
+#         - Ex: t0=5 and dt=3 so calcultate the t0-dt=5-8 interval
+
+#         i = come from getMeanOnePoint (named j) (int)
+#         """
+#         valO = 0
+#         n = 0
+#         for j in range(len(repInd[i]) // 3):
+#             begj = 3 * j
+#             universe.trajectory[t0]
+#             # Plus zero is to avoid 0to be equal to 0tp
+#             Ot0 = repInd[i][begj].position + 0
+
+#             universe.trajectory[t0 + dt]
+#             # Plus zero is to avoid 0to be equal to 0tp
+#             Otp = repInd[i][begj].position + 0
+
+#             # position oxygen
+#             OVector = Ot0 - Otp
+#             # here it is the difference with
+#             # waterdynamics.WaterOrientationalRelaxation
+#             valO += np.dot(OVector, OVector)
+#             n += 1
+
+#         # if no water molecules remain in selection, there is nothing to get
+#         # the mean, so n = 0.
+#         return valO / n if n > 0 else 0
+
+#     def _getMeanOnePoint(self, universe, selection1, selection_str, dt,
+#                          totalFrames):
+#         """
+#         This function gets one point of the plot C_vec vs t. It's uses the
+#         _getOneDeltaPoint() function to calculate the average.
+
+#         """
+#         pass
+
+#     def _sameMolecTandDT(self, selection, t0d, tf):
+#         """
+#         Compare the molecules in the t0d selection and the t0d+dt selection and
+#         select only the particles that are repeated in both frame. This is to
+#         consider only the molecules that remains in the selection after the dt
+#         time has elapsed. The result is a list with the indexs of the atoms.
+#         """
+#         a = set(selection[t0d])
+#         b = set(selection[tf])
+#         sort = sorted(list(a.intersection(b)))
+#         return sort
 
 
+
+
+# TODO: fix the slice analysis
 class MSD(MeanSquareDisplacement):
 
     def __init__(self, universe, t0, tf, dtmax, nproc=1, perp="z", **kwargs):
