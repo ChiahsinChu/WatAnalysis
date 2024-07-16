@@ -1,19 +1,117 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
-from typing import Dict
+from typing import Dict, Union, List
 
 import numpy as np
-from MDAnalysis import Universe
 from MDAnalysis.analysis.base import AnalysisBase
 # from MDAnalysis.analysis.waterdynamics import AngularDistribution
 from MDAnalysis.analysis.hydrogenbonds.hbond_analysis import \
     HydrogenBondAnalysis
 from MDAnalysis.core.groups import AtomGroup
+from MDAnalysis.core.universe import Universe
 from MDAnalysis.exceptions import NoDataError
 from MDAnalysis.lib.distances import capped_distance, minimize_vectors
 from toolbox.utils.utils import calc_water_density
+from ase.geometry import cellpar_to_cell
 
 from WatAnalysis.preprocess import make_selection, make_selection_two
 
+
+class WaterStructure(AnalysisBase):
+    def __init__(self, 
+                 universe: Universe,
+                 axis: int = 2,
+                 verbose : bool = False, 
+                 surf_ids: Union[List, np.ndarray] = None,
+                 oxygen_sel: str = "name O",
+                 hydrogen_sel: str = "name H",
+                 min_vector: bool = True,
+                 ):
+        self.universe = universe
+        trajectory = self.universe.trajectory
+        super().__init__(trajectory, verbose=verbose)
+        self.n_frames = len(trajectory)
+        
+        self.axis = axis
+        self.ave_axis = np.delete(np.arange(3), self.axis)
+        self.surf_ids = surf_ids
+        self.oxygen_ag = self.universe.select_atoms(oxygen_sel)
+        self.hydrogen_ag = self.universe.select_atoms(hydrogen_sel)
+        self.min_vector = min_vector
+        
+    def _prepare(self):
+        # placeholder for water z
+        self.z_water = np.zeros((self.n_frames, self.oxygen_ag.n_atoms))
+        self.geo_dipole_water = np.zeros((self.n_frames, self.hydrogen_ag.n_atoms))
+        self.z_hi = 0.0
+        self.z_lo = 0.0
+        self.cross_area = 0.0
+        
+    def _single_frame(self):
+        # dimension
+        ts_cellpar = self._ts.dimensions
+        ts_cell = cellpar_to_cell(ts_cellpar)
+        ts_area = np.linalg.norm(np.cross(ts_cell[self.ave_axis[0]], ts_cell[self.ave_axis[1]]))
+        self.cross_area += ts_area
+        
+        coords = self._ts.positions
+        coords_oxygen = self.oxygen_ag.positions
+        coords_hydrogen = self.hydrogen_ag.positions.reshape(-1, 2, 3).mean(axis=1)
+        
+        # surface position (refs)
+        z1 = np.mean(coords[self.surf_ids[0], self.axis])
+        z2 = np.mean(coords[self.surf_ids[1], self.axis])
+        self.z_lo += np.min([z1, z2])
+        self.z_hi += np.max([z1, z2])
+
+        # water density
+        np.copyto(self.z_water[self._frame_index], coords_oxygen[:, self.axis])
+        # cos theta
+        if self.min_vector:
+            bond_vectors = minimize_vectors(coords_hydrogen - coords_oxygen, box=ts_cellpar)
+        else:
+            bond_vectors = coords_hydrogen - coords_oxygen
+        cos_theta = (bond_vectors[:, self.axis]) / np.linalg.norm(bond_vectors, axis=-1)
+        np.copyto(self.geo_dipole_water[self._frame_index], cos_theta)
+
+    def _conclude(self):
+        # ave surface position
+        self.z_lo /= self.n_frames
+        self.z_hi /= self.n_frames
+        self.cross_area /= self.n_frames
+        self.z_water_flatten = self.z_water.flatten()
+        self.geo_dipole_water_flatten = self.geo_dipole_water.flatten()
+        
+        # water density
+        out = np.histogram(self.z_water_flatten, bins=int((self.z_hi - self.z_lo) / 0.1), range=(self.z_lo, self.z_hi))
+        n_water = out[0] / self.n_frames
+        grid_volume = np.diff(out[1]) * self.cross_area
+        grid = out[1][:-1] + np.diff(out[1]) / 2
+        rho = calc_water_density(n_water, grid_volume)
+        x = grid - self.z_lo
+        y = (np.flip(rho) + rho) / 2
+        self.results["rho_water"] = [x, y]
+        
+        # water orientation
+        out = np.histogram(self.z_water_flatten, bins=int((self.z_hi - self.z_lo) / 0.1), range=(self.z_lo, self.z_hi), weights=self.geo_dipole_water_flatten)
+        grid = out[1][:-1] + np.diff(out[1]) / 2
+        x = grid - self.z_lo
+        y = out[0] / self.n_frames / self.cross_area
+        y = (y - np.flip(y)) / 2
+        self.results["geo_dipole_water"] = [x, y]
+    
+    def calc_sel_water(self, interval):
+        mask = (self.z_water > (self.z_lo + interval[0])) & (self.z_water <= (self.z_lo + interval[1]))
+        n_water = np.count_nonzero(mask, axis=1)
+        theta_lo = np.arccos(self.geo_dipole_water[mask.flatten()]) / np.pi * 180
+        
+        mask = (self.z_water < (self.z_hi - interval[0])) & (self.z_water >= (self.z_hi - interval[1]))
+        theta_hi = np.arccos(-self.geo_dipole_water[mask]) / np.pi * 180
+        n_water += np.count_nonzero(mask, axis=1)
+        
+        theta = np.concatenate([theta_lo, theta_hi])
+        out = np.histogram(theta, bins=90, range=(0.0, 180.0), density=True)
+        grid = out[1][:-1] + np.diff(out[1]) / 2
+        return n_water, [grid, out[0]]
 
 class WatCoverage(AnalysisBase):
 
