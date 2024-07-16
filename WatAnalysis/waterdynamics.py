@@ -139,13 +139,12 @@ class WOR(WaterOrientationalRelaxation):
 
 # TODO: fix the slice analysis
 class MSD(MeanSquareDisplacement):
-    def __init__(self, universe, t0, tf, dtmax, nproc=1, perp="z", **kwargs):
+    def __init__(self, universe, t0, tf, dtmax, nproc=1, axis=2, **kwargs):
         select = make_selection(**kwargs)
         print("selection: ", select)
         super().__init__(universe, select, t0, tf, dtmax, nproc)
         # TODO: exception capture
-        perp_dict = {"x": 0, "y": 1, "z": 2}
-        self.perp = perp_dict[perp]
+        self.axis = axis
 
     def _getOneDeltaPoint(self, universe, repInd, i, t0, dt):
         val_para = 0
@@ -166,8 +165,8 @@ class MSD(MeanSquareDisplacement):
             OVector = Ot0 - Otp
             # here it is the difference with
             # waterdynamics.WaterOrientationalRelaxation
-            val_perp += np.square(OVector[self.perp])
-            val_para += np.dot(OVector, OVector) - np.square(OVector[self.perp])
+            val_perp += np.square(OVector[self.axis])
+            val_para += np.dot(OVector, OVector) - np.square(OVector[self.axis])
             # valO += np.dot(OVector, OVector)
             n += 1
 
@@ -201,6 +200,9 @@ class MSD(MeanSquareDisplacement):
         # if no water molecules remain in selection, there is nothing to get
         # the mean, so n = 0.
         return sumDeltaO_perp / n if n > 0 else 0, sumDeltaO_para / n if n > 0 else 0
+
+    def run(self):
+        super().run()
 
     def run(self, **kwargs):
         """Analyze trajectory and produce timeseries"""

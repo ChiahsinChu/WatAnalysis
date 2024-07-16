@@ -1,75 +1,85 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
-from typing import Dict, Union, List
+from typing import List, Union
 
 import numpy as np
+from ase.geometry import cellpar_to_cell
 from MDAnalysis.analysis.base import AnalysisBase
+
 # from MDAnalysis.analysis.waterdynamics import AngularDistribution
-from MDAnalysis.analysis.hydrogenbonds.hbond_analysis import \
-    HydrogenBondAnalysis
+from MDAnalysis.analysis.hydrogenbonds.hbond_analysis import HydrogenBondAnalysis
 from MDAnalysis.core.groups import AtomGroup
 from MDAnalysis.core.universe import Universe
 from MDAnalysis.exceptions import NoDataError
 from MDAnalysis.lib.distances import capped_distance, minimize_vectors
 from toolbox.utils.utils import calc_water_density
-from ase.geometry import cellpar_to_cell
 
 from WatAnalysis.preprocess import make_selection, make_selection_two
 
 
 class WaterStructure(AnalysisBase):
-    def __init__(self, 
-                 universe: Universe,
-                 axis: int = 2,
-                 verbose : bool = False, 
-                 surf_ids: Union[List, np.ndarray] = None,
-                 oxygen_sel: str = "name O",
-                 hydrogen_sel: str = "name H",
-                 min_vector: bool = True,
-                 ):
+    def __init__(
+        self,
+        universe: Universe,
+        axis: int = 2,
+        verbose: bool = False,
+        surf_ids: Union[List, np.ndarray] = None,
+        oxygen_sel: str = "name O",
+        hydrogen_sel: str = "name H",
+        min_vector: bool = True,
+    ):
         self.universe = universe
         trajectory = self.universe.trajectory
         super().__init__(trajectory, verbose=verbose)
         self.n_frames = len(trajectory)
-        
+
         self.axis = axis
         self.ave_axis = np.delete(np.arange(3), self.axis)
         self.surf_ids = surf_ids
         self.oxygen_ag = self.universe.select_atoms(oxygen_sel)
         self.hydrogen_ag = self.universe.select_atoms(hydrogen_sel)
         self.min_vector = min_vector
-        
+
     def _prepare(self):
         # placeholder for water z
         self.z_water = np.zeros((self.n_frames, self.oxygen_ag.n_atoms))
-        self.geo_dipole_water = np.zeros((self.n_frames, self.hydrogen_ag.n_atoms))
+        self.geo_dipole_water = np.zeros((self.n_frames, self.oxygen_ag.n_atoms))
         self.z_hi = 0.0
         self.z_lo = 0.0
         self.cross_area = 0.0
-        
+
     def _single_frame(self):
         # dimension
         ts_cellpar = self._ts.dimensions
         ts_cell = cellpar_to_cell(ts_cellpar)
-        ts_area = np.linalg.norm(np.cross(ts_cell[self.ave_axis[0]], ts_cell[self.ave_axis[1]]))
+        ts_area = np.linalg.norm(
+            np.cross(ts_cell[self.ave_axis[0]], ts_cell[self.ave_axis[1]])
+        )
         self.cross_area += ts_area
-        
+
         coords = self._ts.positions
         coords_oxygen = self.oxygen_ag.positions
-        coords_hydrogen = self.hydrogen_ag.positions.reshape(-1, 2, 3).mean(axis=1)
-        
+        coords_hydrogen = self.hydrogen_ag.positions.reshape(-1, 2, 3)
+
         # surface position (refs)
         z1 = np.mean(coords[self.surf_ids[0], self.axis])
         z2 = np.mean(coords[self.surf_ids[1], self.axis])
         self.z_lo += np.min([z1, z2])
         self.z_hi += np.max([z1, z2])
+        # print(z1, z2)
 
         # water density
         np.copyto(self.z_water[self._frame_index], coords_oxygen[:, self.axis])
         # cos theta
         if self.min_vector:
-            bond_vectors = minimize_vectors(coords_hydrogen - coords_oxygen, box=ts_cellpar)
+            bond_vec_1 = minimize_vectors(
+                coords_hydrogen[:, 0, :] - coords_oxygen, box=ts_cellpar
+            )
+            bond_vec_2 = minimize_vectors(
+                coords_hydrogen[:, 1, :] - coords_oxygen, box=ts_cellpar
+            )
+            bond_vectors = bond_vec_1 + bond_vec_2
         else:
-            bond_vectors = coords_hydrogen - coords_oxygen
+            bond_vectors = coords_hydrogen.mean(axis=1) - coords_oxygen
         cos_theta = (bond_vectors[:, self.axis]) / np.linalg.norm(bond_vectors, axis=-1)
         np.copyto(self.geo_dipole_water[self._frame_index], cos_theta)
 
@@ -80,9 +90,13 @@ class WaterStructure(AnalysisBase):
         self.cross_area /= self.n_frames
         self.z_water_flatten = self.z_water.flatten()
         self.geo_dipole_water_flatten = self.geo_dipole_water.flatten()
-        
+
         # water density
-        out = np.histogram(self.z_water_flatten, bins=int((self.z_hi - self.z_lo) / 0.1), range=(self.z_lo, self.z_hi))
+        out = np.histogram(
+            self.z_water_flatten,
+            bins=int((self.z_hi - self.z_lo) / 0.1),
+            range=(self.z_lo, self.z_hi),
+        )
         n_water = out[0] / self.n_frames
         grid_volume = np.diff(out[1]) * self.cross_area
         grid = out[1][:-1] + np.diff(out[1]) / 2
@@ -90,31 +104,44 @@ class WaterStructure(AnalysisBase):
         x = grid - self.z_lo
         y = (np.flip(rho) + rho) / 2
         self.results["rho_water"] = [x, y]
-        
+
         # water orientation
-        out = np.histogram(self.z_water_flatten, bins=int((self.z_hi - self.z_lo) / 0.1), range=(self.z_lo, self.z_hi), weights=self.geo_dipole_water_flatten)
+        out = np.histogram(
+            self.z_water_flatten,
+            bins=int((self.z_hi - self.z_lo) / 0.1),
+            range=(self.z_lo, self.z_hi),
+            weights=self.geo_dipole_water_flatten,
+        )
         grid = out[1][:-1] + np.diff(out[1]) / 2
         x = grid - self.z_lo
         y = out[0] / self.n_frames / self.cross_area
         y = (y - np.flip(y)) / 2
         self.results["geo_dipole_water"] = [x, y]
-    
+
     def calc_sel_water(self, interval):
-        mask = (self.z_water > (self.z_lo + interval[0])) & (self.z_water <= (self.z_lo + interval[1]))
+        mask = (self.z_water > (self.z_lo + interval[0])) & (
+            self.z_water <= (self.z_lo + interval[1])
+        )
         n_water = np.count_nonzero(mask, axis=1)
-        theta_lo = np.arccos(self.geo_dipole_water[mask.flatten()]) / np.pi * 180
-        
-        mask = (self.z_water < (self.z_hi - interval[0])) & (self.z_water >= (self.z_hi - interval[1]))
-        theta_hi = np.arccos(-self.geo_dipole_water[mask]) / np.pi * 180
+        theta_lo = (
+            np.arccos(self.geo_dipole_water_flatten[mask.flatten()]) / np.pi * 180
+        )
+
+        mask = (self.z_water < (self.z_hi - interval[0])) & (
+            self.z_water >= (self.z_hi - interval[1])
+        )
+        theta_hi = (
+            np.arccos(-self.geo_dipole_water_flatten[mask.flatten()]) / np.pi * 180
+        )
         n_water += np.count_nonzero(mask, axis=1)
-        
+
         theta = np.concatenate([theta_lo, theta_hi])
         out = np.histogram(theta, bins=90, range=(0.0, 180.0), density=True)
         grid = out[1][:-1] + np.diff(out[1]) / 2
         return n_water, [grid, out[0]]
 
-class WatCoverage(AnalysisBase):
 
+class WatCoverage(AnalysisBase):
     def __init__(self, universe, verbose=False, **kwargs):
         select = make_selection(**kwargs)
         # print("selection: ", select)
@@ -136,14 +163,9 @@ class WatCoverage(AnalysisBase):
 
 
 class AngularDistribution(AnalysisBase):
-
-    def __init__(self,
-                 universe,
-                 nbins=50,
-                 axis="z",
-                 updating=True,
-                 verbose=False,
-                 **kwargs):
+    def __init__(
+        self, universe, nbins=50, axis="z", updating=True, verbose=False, **kwargs
+    ):
         trajectory = universe.trajectory
         super().__init__(trajectory, verbose=verbose)
 
@@ -181,26 +203,23 @@ class AngularDistribution(AnalysisBase):
         thetaHH = np.arccos(self.ts_cosHH) / np.pi * 180
         thetaD = np.arccos(self.ts_cosD) / np.pi * 180
 
-        cos_hist_interval = np.linspace(-1., 1., self.nbins)
-        theta_hist_interval = np.linspace(0., 180., self.nbins)
+        cos_hist_interval = np.linspace(-1.0, 1.0, self.nbins)
+        theta_hist_interval = np.linspace(0.0, 180.0, self.nbins)
 
-        hist_cosOH = np.histogram(self.ts_cosOH,
-                                  cos_hist_interval,
-                                  density=True)
-        hist_cosHH = np.histogram(self.ts_cosHH,
-                                  cos_hist_interval,
-                                  density=True)
+        hist_cosOH = np.histogram(self.ts_cosOH, cos_hist_interval, density=True)
+        hist_cosHH = np.histogram(self.ts_cosHH, cos_hist_interval, density=True)
         hist_cosD = np.histogram(self.ts_cosD, cos_hist_interval, density=True)
         hist_OH = np.histogram(thetaOH, theta_hist_interval, density=True)
         hist_HH = np.histogram(thetaHH, theta_hist_interval, density=True)
         hist_D = np.histogram(thetaD, theta_hist_interval, density=True)
 
-        for label in ['cosOH', 'cosHH', 'cosD', 'OH', 'HH', 'D']:
-            output = locals()['hist_%s' % label]
+        for label in ["cosOH", "cosHH", "cosD", "OH", "HH", "D"]:
+            output = locals()["hist_%s" % label]
             self.results[label] = np.transpose(
                 np.concatenate(
-                    ([output[1][:-1] + (output[1][1] - output[1][0]) / 2],
-                     [output[0]])))
+                    ([output[1][:-1] + (output[1][1] - output[1][0]) / 2], [output[0]])
+                )
+            )
 
         # self.results['cosOH'] =
         # self.results['cosHH'] = np.transpose(
@@ -230,14 +249,11 @@ class AngularDistribution(AnalysisBase):
         ts_p_H1 = ts_positions[1::3]
         ts_p_H2 = ts_positions[2::3]
 
-        vec_OH_0 = minimize_vectors(vectors=ts_p_H1 - ts_p_O,
-                                    box=self._ts.dimensions)
-        vec_OH_1 = minimize_vectors(vectors=ts_p_H2 - ts_p_O,
-                                    box=self._ts.dimensions)
+        vec_OH_0 = minimize_vectors(vectors=ts_p_H1 - ts_p_O, box=self._ts.dimensions)
+        vec_OH_1 = minimize_vectors(vectors=ts_p_H2 - ts_p_O, box=self._ts.dimensions)
         cosOH = vec_OH_0[:, axis] / np.linalg.norm(vec_OH_0, axis=-1)
         # self.ts_cosOH.extend(cosOH.tolist())
-        cosOH = np.append(
-            cosOH, vec_OH_1[:, axis] / np.linalg.norm(vec_OH_1, axis=-1))
+        cosOH = np.append(cosOH, vec_OH_1[:, axis] / np.linalg.norm(vec_OH_1, axis=-1))
         # self.ts_cosOH.extend(cosOH.tolist())
 
         vec_HH = ts_p_H1 - ts_p_H2
@@ -376,24 +392,33 @@ class AngularDistribution(AnalysisBase):
 
 
 class HBA(HydrogenBondAnalysis):
-
-    def __init__(self,
-                 universe,
-                 donors_sel=None,
-                 hydrogens_sel=None,
-                 acceptors_sel=None,
-                 between=None,
-                 d_h_cutoff=1.2,
-                 d_a_cutoff=3,
-                 d_h_a_angle_cutoff=150,
-                 update_acceptors=False,
-                 update_donors=False):
+    def __init__(
+        self,
+        universe,
+        donors_sel=None,
+        hydrogens_sel=None,
+        acceptors_sel=None,
+        between=None,
+        d_h_cutoff=1.2,
+        d_a_cutoff=3,
+        d_h_a_angle_cutoff=150,
+        update_acceptors=False,
+        update_donors=False,
+    ):
         self.update_acceptors = update_acceptors
         self.update_donors = update_donors
-        update_selection = (update_donors | update_acceptors)
-        super().__init__(universe, donors_sel, hydrogens_sel, acceptors_sel,
-                         between, d_h_cutoff, d_a_cutoff, d_h_a_angle_cutoff,
-                         update_selection)
+        update_selection = update_donors | update_acceptors
+        super().__init__(
+            universe,
+            donors_sel,
+            hydrogens_sel,
+            acceptors_sel,
+            between,
+            d_h_cutoff,
+            d_a_cutoff,
+            d_h_a_angle_cutoff,
+            update_selection,
+        )
 
     def _prepare(self):
         self.results.hbonds = [[], [], [], [], [], []]
@@ -405,8 +430,9 @@ class HBA(HydrogenBondAnalysis):
             self.hydrogens_sel = self.guess_hydrogens()
 
         # Select atom groups
-        self._acceptors = self.u.select_atoms(self.acceptors_sel,
-                                              updating=self.update_acceptors)
+        self._acceptors = self.u.select_atoms(
+            self.acceptors_sel, updating=self.update_acceptors
+        )
         self._donors, self._hydrogens = self._get_dh_pairs()
 
     def _get_dh_pairs(self):
@@ -424,29 +450,35 @@ class HBA(HydrogenBondAnalysis):
             # We're using u._topology.bonds rather than u.bonds as it is a million times faster to access.
             # This is because u.bonds also calculates properties of each bond (e.g bond length).
             # See https://github.com/MDAnalysis/mdanalysis/issues/2396#issuecomment-596251787
-            if not (hasattr(self.u._topology, 'bonds')
-                    and len(self.u._topology.bonds.values) != 0):
+            if not (
+                hasattr(self.u._topology, "bonds")
+                and len(self.u._topology.bonds.values) != 0
+            ):
                 raise NoDataError(
-                    'Cannot assign donor-hydrogen pairs via topology as no bond information is present. '
-                    'Please either: load a topology file with bond information; use the guess_bonds() '
-                    'topology guesser; or set HydrogenBondAnalysis.donors_sel so that a distance cutoff '
-                    'can be used.')
+                    "Cannot assign donor-hydrogen pairs via topology as no bond information is present. "
+                    "Please either: load a topology file with bond information; use the guess_bonds() "
+                    "topology guesser; or set HydrogenBondAnalysis.donors_sel so that a distance cutoff "
+                    "can be used."
+                )
 
             hydrogens = self.u.select_atoms(self.hydrogens_sel)
-            donors = sum(h.bonded_atoms[0] for h in hydrogens) if hydrogens \
+            donors = (
+                sum(h.bonded_atoms[0] for h in hydrogens)
+                if hydrogens
                 else AtomGroup([], self.u)
+            )
 
         # Otherwise, use d_h_cutoff as a cutoff distance
         else:
             hydrogens = self.u.select_atoms(self.hydrogens_sel)
-            donors = self.u.select_atoms(self.donors_sel,
-                                         updating=self.update_donors)
+            donors = self.u.select_atoms(self.donors_sel, updating=self.update_donors)
             donors_indices, hydrogen_indices = capped_distance(
                 donors.positions,
                 hydrogens.positions,
                 max_cutoff=self.d_h_cutoff,
                 box=self.u.dimensions,
-                return_distances=False).T
+                return_distances=False,
+            ).T
 
             donors = donors[donors_indices]
             hydrogens = hydrogens[hydrogen_indices]

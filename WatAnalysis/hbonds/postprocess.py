@@ -10,16 +10,20 @@ import numpy as np
 from WatAnalysis.utils import get_cum_ave
 
 
-def count_by_time(hbonds_result, start, stop, step=1, dt=1):
+def count_by_time(hbonds_result, start=None, stop=None, step=1, dt=1):
     """
     Adapted from MDA
     """
+    if start is None:
+        start = np.min(hbonds_result[:, 0])
+    if stop is None:
+        stop = np.max(hbonds_result[:, 0])
     indices, tmp_counts = np.unique(hbonds_result[:, 0], axis=0, return_counts=True)
     indices -= start
     indices /= step
-    counts = np.zeros_like(np.arange(start, stop, step))
+    counts = np.zeros_like(np.arange(start, stop + step, step))
     counts[indices.astype(np.intp)] = tmp_counts
-    return [np.arange(start, stop, step) * dt, counts, get_cum_ave(counts)]
+    return [np.arange(start, stop + step, step) * dt, counts, get_cum_ave(counts)]
 
 
 def lifetime(
