@@ -1,14 +1,15 @@
-import numpy as np
+# SPDX-License-Identifier: LGPL-3.0-or-later
 import time
-from ase import io
-import MDAnalysis as mda
-from MDAnalysis import transformations as trans
 
+import MDAnalysis as mda
+import numpy as np
+from ase import io
+from MDAnalysis import transformations as trans
 from zjxpack.postprocess.metal import ECMetal
 
-from WatAnalysis.parallel import parallel_exec
-from WatAnalysis.dielectric import ParallelInverseDielectricConstant as PIDC
 from WatAnalysis.dielectric import InverseDielectricConstant as IDC
+from WatAnalysis.dielectric import ParallelInverseDielectricConstant as PIDC
+from WatAnalysis.parallel import parallel_exec
 
 dim = [11.246, 11.246, 35.94, 90, 90, 90]
 
@@ -21,7 +22,8 @@ surf_ids = atoms.get_surf_idx()
 # load trajectory
 u = mda.Universe(
     "/data/jxzhu/2022_leiden/02.nnp_validation/input/interface.psf",
-    "/data/jxzhu/2022_leiden/02.nnp_validation/input/raw_aimd.xyz")
+    "/data/jxzhu/2022_leiden/02.nnp_validation/input/raw_aimd.xyz",
+)
 transform = trans.boxdimensions.set_dimensions(dim)
 u.trajectory.add_transformations(transform)
 

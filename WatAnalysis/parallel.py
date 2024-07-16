@@ -1,12 +1,15 @@
-import time, logging
+# SPDX-License-Identifier: LGPL-3.0-or-later
+import logging
+import time
+from multiprocessing import cpu_count
+
 # modules for parallel computing
 import dask
 import dask.multiprocessing
-from multiprocessing import cpu_count
 
 logger = logging.getLogger(__name__)
 
-dask.config.set(scheduler='processes')
+dask.config.set(scheduler="processes")
 n_jobs = cpu_count()
 
 
@@ -70,7 +73,7 @@ def run_block(blockslice, ana_base):
     Return:
         ana_base with results of block
     """
-    #universe.transfer_to_memory(start=blockslice.start, stop=blockslice.stop)
+    # universe.transfer_to_memory(start=blockslice.start, stop=blockslice.stop)
     ana_base.run(start=blockslice.start, stop=blockslice.stop, verbose=True)
     return ana_base
 
@@ -83,26 +86,23 @@ def parallel_exec(singlefunc, start, stop, step, n_proc, *args, **kwargs):
     region = range(start, stop, step)
     blocks = slice_split(region, n_proc)
 
-    if singlefunc.__class__.__name__ == 'function':
-        run_para = partial(_parallel_function_formap,
-                           singlefunc=singlefunc,
-                           *args,
-                           **kwargs)
+    if singlefunc.__class__.__name__ == "function":
+        run_para = partial(
+            _parallel_function_formap, singlefunc=singlefunc, *args, **kwargs
+        )
 
-    elif singlefunc.__class__.__name__ == 'method':
+    elif singlefunc.__class__.__name__ == "method":
+        # type of method we should tell
+        if singlefunc.__self__.__class__.__base__.__base__.__name__ == "AnalysisBase":
+            # more variables should be added.
 
-        #type of method we should tell
-        if singlefunc.__self__.__class__.__base__.__base__.__name__ == 'AnalysisBase':
-            #more variables should be added.
-
-            #it seems not work
+            # it seems not work
             singlefunc.__self__.para = True
             singlefunc.__self__._para_region = region
 
-        run_para = partial(_parallel_function_formap,
-                           singlefunc=singlefunc,
-                           *args,
-                           **kwargs)
+        run_para = partial(
+            _parallel_function_formap, singlefunc=singlefunc, *args, **kwargs
+        )
 
     # co future
     with ProcessPoolExecutor(n_proc) as pool_executor:
@@ -116,11 +116,11 @@ def parallel_exec(singlefunc, start, stop, step, n_proc, *args, **kwargs):
         result = raw_result
 
     try:
-        if singlefunc.__self__.__class__.__base__.__base__.__name__ == 'AnalysisBase':
+        if singlefunc.__self__.__class__.__base__.__base__.__name__ == "AnalysisBase":
             singlefunc.__self__.para = None
     except:
         pass
-    #singlefunc.__self__.ag.universe.trajectory._reopen()
+    # singlefunc.__self__.ag.universe.trajectory._reopen()
 
     return result
 
@@ -131,7 +131,7 @@ def slice_split(src, num):
     mod = len_src % num
     sdx = 0
     splist = []
-    for p_len in ([1] * mod + [0] * (num - mod)):
+    for p_len in [1] * mod + [0] * (num - mod):
         edx = p_len + div + sdx
         splist.append(src[sdx:edx])
         sdx = edx
@@ -148,13 +148,14 @@ def _parallel_function_formap(block, singlefunc, *args, **kwargs):
 
 def para_raw_data_process(func, rawdata, *args):
     result = []
-    if func.__class__.__name__ == 'method':
-        if func.__name__ == 'trans2ase':
+    if func.__class__.__name__ == "method":
+        if func.__name__ == "trans2ase":
             result = []
             for item in rawdata:
                 result += item
-        elif func.__name__ == 'get_memory_slice':
+        elif func.__name__ == "get_memory_slice":
             from MDAnalysis.coordinates.memory import MemoryReader
+
             coords = []
             for item in rawdata:
                 single_coords = item.get_array()
@@ -162,23 +163,23 @@ def para_raw_data_process(func, rawdata, *args):
             coords = np.concatenate(coords)
             memory_slice = MemoryReader(coords)
             result = memory_slice
-        elif func.__name__ == 'get_distance':
+        elif func.__name__ == "get_distance":
             result = np.concatenate(rawdata)
         ##suit for analysis method.
-        elif (func.__self__.__class__.__base__.__base__.__name__ ==
-              'AnalysisBase'):
+        elif func.__self__.__class__.__base__.__base__.__name__ == "AnalysisBase":
             result = func.__self__._parallel_conclude(rawdata)
-        elif func.__self__.__class__.__name__ == 'OffsetGenerator':
+        elif func.__self__.__class__.__name__ == "OffsetGenerator":
             result = rawdata
 
-    elif func.__class__.__name__ == 'function':
-        if func.__name__ == 'offset_para_func':
+    elif func.__class__.__name__ == "function":
+        if func.__name__ == "offset_para_func":
             import numpy as np
+
             offsets = np.concatenate(rawdata)
             offsets = np.unique(offsets)
             n_frames = len(offsets)
             result = (n_frames, offsets)
-        if func.__name__ == 'trans2ase':
+        if func.__name__ == "trans2ase":
             result = []
             for item in rawdata:
                 result += item

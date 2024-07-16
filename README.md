@@ -30,7 +30,7 @@ python setpy.py install
 1. `waterstructure`: water structure analysis
 
 2. `waterdynamics`: water dynamics analysis
-This module is built on the basis of `MDAnalysis.analysis.waterdynamics`. I adapt the analysis class to the interfacial systems, which is implemented in conjunction with a [modified MDAnalysis package](https://github.com/ChiahsinChu/m_MDAnalysis) (private package yet). 
+This module is built on the basis of `MDAnalysis.analysis.waterdynamics`. I adapt the analysis class to the interfacial systems, which is implemented in conjunction with a [modified MDAnalysis package](https://github.com/ChiahsinChu/m_MDAnalysis) (private package yet).
 
 - instantaneous temperature of selected atoms (AtomGroup in MDA)
 

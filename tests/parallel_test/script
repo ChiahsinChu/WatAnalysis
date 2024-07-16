@@ -9,11 +9,10 @@
 #BSUB -n 4
 #BSUB -R "span[ptile=32]"
 
-
 # module load deepmd/2.0
 
 module load miniconda3/base
 source activate band-alignment
 module load gcc/7.5.0
 
-python pmda_hb.py 
+python pmda_hb.py

@@ -1,25 +1,24 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 import numpy as np
-import multiprocessing as mp
-
 from MDAnalysis.analysis.base import AnalysisBase
-from MDAnalysis.exceptions import NoDataError
 from MDAnalysis.analysis.dielectric import DielectricConstant
+from MDAnalysis.exceptions import NoDataError
 from MDAnalysis.units import constants, convert
-from pmda.parallel import ParallelAnalysisBase
 
 from WatAnalysis.preprocess import make_selection, make_selection_two
 
 
 class InverseDielectricConstant(AnalysisBase):
-
-    def __init__(self,
-                 universe,
-                 bins,
-                 axis="z",
-                 temperature=330,
-                 make_whole=True,
-                 verbose=False,
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        universe,
+        bins,
+        axis="z",
+        temperature=330,
+        make_whole=True,
+        verbose=False,
+        **kwargs,
+    ) -> None:
         super().__init__(universe.trajectory, verbose)
 
         self.universe = universe
@@ -37,10 +36,13 @@ class InverseDielectricConstant(AnalysisBase):
             raise NoDataError("No charges defined given atomgroup.")
 
         if not np.allclose(
-                self.atoms.total_charge(compound='fragments'), 0.0, atol=1E-5):
-            raise NotImplementedError("Analysis for non-neutral systems or"
-                                      " systems with free charges are not"
-                                      " available.")
+            self.atoms.total_charge(compound="fragments"), 0.0, atol=1e-5
+        ):
+            raise NotImplementedError(
+                "Analysis for non-neutral systems or"
+                " systems with free charges are not"
+                " available."
+            )
 
         self.results.m = np.zeros((self.nbins))
         self.results.mM = np.zeros((self.nbins))
@@ -56,8 +58,7 @@ class InverseDielectricConstant(AnalysisBase):
 
     def _single_frame(self):
         ave_axis = np.delete(np.arange(3), self.axis)
-        ts_area = self._ts.dimensions[ave_axis[0]] * self._ts.dimensions[
-            ave_axis[1]]
+        ts_area = self._ts.dimensions[ave_axis[0]] * self._ts.dimensions[ave_axis[1]]
         ts_volume = self._ts.volume
         self.volume += ts_volume
 
@@ -78,8 +79,9 @@ class InverseDielectricConstant(AnalysisBase):
             # print(results)
 
         for ii in range(self.nbins):
-            _single_bin(ii, self.make_whole, self.ags, self.bins, self.axis,
-                        self.results)
+            _single_bin(
+                ii, self.make_whole, self.ags, self.bins, self.axis, self.results
+            )
 
     def _conclude(self):
         self.results.m /= self.n_frames
@@ -92,28 +94,36 @@ class InverseDielectricConstant(AnalysisBase):
         M_fluct = self.results.M2 - self.results.M * self.results.M
 
         self.results.eps = self.results.fluct / (
-              convert(constants["Boltzman_constant"], "kJ/mol", "eV") *
-              self.temperature * self.volume * constants["electric_constant"])
+            convert(constants["Boltzman_constant"], "kJ/mol", "eV")
+            * self.temperature
+            * self.volume
+            * constants["electric_constant"]
+        )
 
-        const = convert(
-            constants["Boltzman_constant"], "kJ/mol",
-            "eV") * self.temperature * constants["electric_constant"] / 3.
+        const = (
+            convert(constants["Boltzman_constant"], "kJ/mol", "eV")
+            * self.temperature
+            * constants["electric_constant"]
+            / 3.0
+        )
         self.results.inveps = 1 - x_fluct / (const + M_fluct / self.volume)
 
 
 class ParallelInverseDielectricConstant(InverseDielectricConstant):
-
-    def __init__(self,
-                 universe,
-                 bins,
-                 axis="z",
-                 temperature=330,
-                 make_whole=True,
-                 verbose=False,
-                 **kwargs) -> None:
-        super().__init__(universe, bins, axis, temperature, make_whole,
-                         verbose, **kwargs)
-        #parallel value initial
+    def __init__(
+        self,
+        universe,
+        bins,
+        axis="z",
+        temperature=330,
+        make_whole=True,
+        verbose=False,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            universe, bins, axis, temperature, make_whole, verbose, **kwargs
+        )
+        # parallel value initial
         self.para = None
         self._para_region = None
 
@@ -128,10 +138,9 @@ class ParallelInverseDielectricConstant(InverseDielectricConstant):
         self._prepare()
 
     def run(self, start=None, stop=None, step=None, verbose=None):
-
-        #self._trajectory._reopen()
+        # self._trajectory._reopen()
         if verbose == True:
-            print(" ", end='')
+            print(" ", end="")
         super().run(start, stop, step, verbose)
 
         if self.para:
@@ -140,13 +149,16 @@ class ParallelInverseDielectricConstant(InverseDielectricConstant):
                 raise ValueError(
                     "in parallel, block result has not been defined or no data output!"
                 )
-            #logger.info("block_anal finished.")
+            # logger.info("block_anal finished.")
             return block_result
 
     def _para_block_result(self):
         return [
-            self.results.m, self.results.mM, self.results.M, self.results.M2,
-            self.volume
+            self.results.m,
+            self.results.mM,
+            self.results.M,
+            self.results.M2,
+            self.volume,
         ]
 
     def _parallel_conclude(self, rawdata):
@@ -180,31 +192,25 @@ class ParallelInverseDielectricConstant(InverseDielectricConstant):
 
         x_fluct = self.results["mM"] - self.results["m"] * self.results["M"]
         M_fluct = self.results["M2"] - self.results["M"] * self.results["M"]
-        const = convert(
-            constants["Boltzman_constant"], "kJ/mol",
-            "eV") * self.temperature * constants["electric_constant"]
+        const = (
+            convert(constants["Boltzman_constant"], "kJ/mol", "eV")
+            * self.temperature
+            * constants["electric_constant"]
+        )
         self.results["inveps"] = 1 - x_fluct / (const + M_fluct / self.volume)
 
         return "FINISH PARA CONCLUDE"
 
 
 class DeprecatedDC(DielectricConstant):
-
-    def __init__(self,
-                 universe,
-                 bins,
-                 temperature=330,
-                 make_whole=True,
-                 verbose=False,
-                 **kwargs) -> None:
+    def __init__(
+        self, universe, bins, temperature=330, make_whole=True, verbose=False, **kwargs
+    ) -> None:
         self.universe = universe
         self.bins = bins
         self.nbins = len(bins) - 1
         self.kwargs = kwargs
-        super().__init__(universe.atoms,
-                         temperature,
-                         make_whole,
-                         verbose=verbose)
+        super().__init__(universe.atoms, temperature, make_whole, verbose=verbose)
 
     def _prepare(self):
         super()._prepare()
@@ -221,13 +227,10 @@ class DeprecatedDC(DielectricConstant):
         for ii in range(self.nbins):
             sel_region = [self.bins[ii], self.bins[ii + 1]]
             select = make_selection_two(sel_region=sel_region, **self.kwargs)
-            self.ags.append(
-                self.universe.select_atoms(select[0], updating=True))
-            self.ags.append(
-                self.universe.select_atoms(select[1], updating=True))
+            self.ags.append(self.universe.select_atoms(select[0], updating=True))
+            self.ags.append(self.universe.select_atoms(select[1], updating=True))
 
     def _single_frame(self):
-
         for ii in range(self.nbins):
             # lower surface
             if self.make_whole:
@@ -235,8 +238,11 @@ class DeprecatedDC(DielectricConstant):
 
             # volume of each bin rather than the whole system
             # self.volume += self.atomgroup.universe.trajectory.ts.volume
-            self.volume[ii] += self._ts.dimensions[0] * self._ts.dimensions[
-                1] * (self.bins[ii + 1] - self.bins[ii])
+            self.volume[ii] += (
+                self._ts.dimensions[0]
+                * self._ts.dimensions[1]
+                * (self.bins[ii + 1] - self.bins[ii])
+            )
 
             M = np.dot(self.ags[2 * ii].charges, self.ags[2 * ii].positions)
             self.results.M[ii] += M
@@ -248,12 +254,15 @@ class DeprecatedDC(DielectricConstant):
 
             # volume of each bin rather than the whole system
             # self.volume += self.atomgroup.universe.trajectory.ts.volume
-            self.volume[ii] += self._ts.dimensions[0] * self._ts.dimensions[
-                1] * (self.bins[ii + 1] - self.bins[ii])
+            self.volume[ii] += (
+                self._ts.dimensions[0]
+                * self._ts.dimensions[1]
+                * (self.bins[ii + 1] - self.bins[ii])
+            )
 
-            M = np.dot(self.ags[2 * ii + 1].charges,
-                       self.ags[2 * ii + 1].positions) * np.array(
-                           [1., 1., -1.])
+            M = np.dot(
+                self.ags[2 * ii + 1].charges, self.ags[2 * ii + 1].positions
+            ) * np.array([1.0, 1.0, -1.0])
             self.results.M[ii] += M
             self.results.M2[ii] += M * M
 
@@ -265,9 +274,11 @@ class DeprecatedDC(DielectricConstant):
         self.results.fluct = self.results.M2 - self.results.M * self.results.M
 
         self.results.eps = self.results.fluct / (
-            convert(constants["Boltzman_constant"], "kJ/mol", "eV") *
-            self.temperature * np.reshape(self.volume, (self.nbins, 1)) *
-            constants["electric_constant"])
+            convert(constants["Boltzman_constant"], "kJ/mol", "eV")
+            * self.temperature
+            * np.reshape(self.volume, (self.nbins, 1))
+            * constants["electric_constant"]
+        )
 
         self.results.eps_mean = self.results.eps.mean(axis=-1)
 

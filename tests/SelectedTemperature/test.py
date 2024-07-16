@@ -1,9 +1,7 @@
-import numpy as np
-import time
-import MDAnalysis as mda
-from MDAnalysis import transformations as trans
-
+# SPDX-License-Identifier: LGPL-3.0-or-later
 import matplotlib.pyplot as plt
+import MDAnalysis as mda
+import numpy as np
 
 from WatAnalysis.temp import SelectedTemperature as ST
 
@@ -17,7 +15,7 @@ ag = u.select_atoms("name O or name H")
 job = ST(ag, u_vels)
 job.run()
 
-# plot 
+# plot
 dt = 0.5 / 1000 * 10
 t = np.arange(len(temp)) * dt
 
@@ -29,10 +27,7 @@ plt.plot(t, dft_temp[:, 0], color="red", alpha=0.5, label="DFT")
 plt.xlim(t.min(), t.max())
 plt.xlabel("Time [ps]")
 plt.ylabel("Temperature [K]")
-plt.legend(loc='center',
-           bbox_to_anchor=(0.5, -0.2),
-           ncol=2,
-           borderaxespad=0)
+plt.legend(loc="center", bbox_to_anchor=(0.5, -0.2), ncol=2, borderaxespad=0)
 
 plt.savefig("water_temp.png", bbox_inches="tight")
 plt.show()

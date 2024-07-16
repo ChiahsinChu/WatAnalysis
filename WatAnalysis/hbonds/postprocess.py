@@ -1,8 +1,11 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """
 Functions for postprocessing of PartialHBAnalysis results
 """
-import numpy as np
+
 import os
+
+import numpy as np
 
 from WatAnalysis.utils import get_cum_ave
 
@@ -11,9 +14,7 @@ def count_by_time(hbonds_result, start, stop, step=1, dt=1):
     """
     Adapted from MDA
     """
-    indices, tmp_counts = np.unique(hbonds_result[:, 0],
-                                    axis=0,
-                                    return_counts=True)
+    indices, tmp_counts = np.unique(hbonds_result[:, 0], axis=0, return_counts=True)
     indices -= start
     indices /= step
     counts = np.zeros_like(np.arange(start, stop, step))
@@ -21,14 +22,9 @@ def count_by_time(hbonds_result, start, stop, step=1, dt=1):
     return [np.arange(start, stop, step) * dt, counts, get_cum_ave(counts)]
 
 
-def lifetime(hbonds_result,
-             start,
-             stop,
-             step,
-             dt,
-             tau_max=20,
-             window_step=1,
-             intermittency=0):
+def lifetime(
+    hbonds_result, start, stop, step, dt, tau_max=20, window_step=1, intermittency=0
+):
     """
     Adapted from MDA
     """
@@ -40,10 +36,12 @@ def lifetime(hbonds_result,
         for hbond in hbonds_result[hbonds_result[:, 0] == frame]:
             found_hydrogen_bonds[frame_index].add(frozenset(hbond[2:4]))
 
-    intermittent_hbonds = correct_intermittency(found_hydrogen_bonds,
-                                                intermittency=intermittency)
+    intermittent_hbonds = correct_intermittency(
+        found_hydrogen_bonds, intermittency=intermittency
+    )
     tau_timeseries, timeseries, timeseries_data = autocorrelation(
-        intermittent_hbonds, tau_max, window_step=window_step)
+        intermittent_hbonds, tau_max, window_step=window_step
+    )
     output = np.vstack([tau_timeseries, timeseries])
     output[0] = output[0] * dt
     return output
@@ -59,12 +57,12 @@ def fit_biexponential(tau_timeseries, ac_timeseries):
     from scipy.optimize import curve_fit
 
     def model(t, A, tau1, B, tau2):
-        """Fit data to a biexponential function.
-        """
+        """Fit data to a biexponential function."""
         return A * np.exp(-t / tau1) + B * np.exp(-t / tau2)
 
-    params, params_covariance = curve_fit(model, tau_timeseries, ac_timeseries,
-                                          [1, 0.5, 1, 2])
+    params, params_covariance = curve_fit(
+        model, tau_timeseries, ac_timeseries, [1, 0.5, 1, 2]
+    )
 
     fit_t = np.linspace(tau_timeseries[0], tau_timeseries[-1], 1000)
     fit_ac = model(fit_t, *params)
@@ -101,8 +99,8 @@ def get_graphs(hbonds_result, output_dir):
 
     Parameters
     ----------
-    hbonds_result: (n, 9)-shape List
-    output_dir:
+    hbonds_result : (n, 9)-shape List
+    output_dir
         directory to save file
     """
     # number of edges (hydrogen bonds)
@@ -133,12 +131,11 @@ def get_graphs(hbonds_result, output_dir):
             graph_indicator = np.full((n_node_lo), graph_id, dtype=np.int32)
         else:
             graph_indicator = np.concatenate(
-                (graph_indicator, np.full((n_node_lo),
-                                          graph_id,
-                                          dtype=np.int32)))
+                (graph_indicator, np.full((n_node_lo), graph_id, dtype=np.int32))
+            )
         # write graphs
         graph = graph_lo + n_nodes + 1
-        np.copyto(graphs[start_id:start_id + len(graph)], graph)
+        np.copyto(graphs[start_id : start_id + len(graph)], graph)
         n_nodes = n_nodes + n_node_lo
 
         # make graph for upper surfaces
@@ -146,10 +143,11 @@ def get_graphs(hbonds_result, output_dir):
         # write graph_indicator (graph_id)
         graph_id = graph_id + 1
         graph_indicator = np.concatenate(
-            (graph_indicator, np.full((n_node_hi), graph_id, dtype=np.int32)))
+            (graph_indicator, np.full((n_node_hi), graph_id, dtype=np.int32))
+        )
         # write graphs
         graph = graph_hi + n_nodes + 1
-        np.copyto(graphs[end_id - len(graph):end_id], graph)
+        np.copyto(graphs[end_id - len(graph) : end_id], graph)
         n_nodes = n_nodes + n_node_hi
 
     # the last frame
@@ -168,10 +166,11 @@ def get_graphs(hbonds_result, output_dir):
         graph_indicator = np.full((n_node_lo), graph_id, dtype=np.int32)
     else:
         graph_indicator = np.concatenate(
-            (graph_indicator, np.full((n_node_lo), graph_id, dtype=np.int32)))
+            (graph_indicator, np.full((n_node_lo), graph_id, dtype=np.int32))
+        )
     # write graphs
     graph = graph_lo + n_nodes + 1
-    np.copyto(graphs[start_id:start_id + len(graph)], graph)
+    np.copyto(graphs[start_id : start_id + len(graph)], graph)
     n_nodes = n_nodes + n_node_lo
 
     # make graph for upper surfaces
@@ -179,10 +178,11 @@ def get_graphs(hbonds_result, output_dir):
     # write graph_indicator (graph_id)
     graph_id = graph_id + 1
     graph_indicator = np.concatenate(
-        (graph_indicator, np.full((n_node_hi), graph_id, dtype=np.int32)))
+        (graph_indicator, np.full((n_node_hi), graph_id, dtype=np.int32))
+    )
     # write graphs
     graph = graph_hi + n_nodes + 1
-    np.copyto(graphs[-1 - len(graph):-1], graph)
+    np.copyto(graphs[-1 - len(graph) : -1], graph)
     n_nodes = n_nodes + n_node_hi
 
     graph_labels = np.ones((2 * n_frames), dtype=np.int32)
@@ -191,28 +191,21 @@ def get_graphs(hbonds_result, output_dir):
     # save files
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    np.savetxt(os.path.join(output_dir, "A.txt"),
-               graphs,
-               delimiter=',',
-               fmt="%d")
-    np.savetxt(os.path.join(output_dir, "graph_indicator.txt"),
-               graph_indicator,
-               fmt="%d")
-    np.savetxt(os.path.join(output_dir, "graph_labels.txt"),
-               graph_labels,
-               fmt="%d")
-    np.savetxt(os.path.join(output_dir, "node_labels.txt"),
-               node_labels,
-               fmt="%d")
+    np.savetxt(os.path.join(output_dir, "A.txt"), graphs, delimiter=",", fmt="%d")
+    np.savetxt(
+        os.path.join(output_dir, "graph_indicator.txt"), graph_indicator, fmt="%d"
+    )
+    np.savetxt(os.path.join(output_dir, "graph_labels.txt"), graph_labels, fmt="%d")
+    np.savetxt(os.path.join(output_dir, "node_labels.txt"), node_labels, fmt="%d")
 
 
 def make_graph(d_a_pairs):
     """
-    Parameter
-    ---------
-    d_a_pairs: (n, 2)-shape List
+    Parameters
+    ----------
+    d_a_pairs : (n, 2)-shape List
         id of donors/acceptors in ONE graph (surface)
-    
+
     Returns
     -------
     graph: (n, 2)-shape List
@@ -231,8 +224,8 @@ def make_mask(single_frame_hbonds):
     """
     make masks for the D-A pairs at upper/lower surface
     """
-    mask_lo = (single_frame_hbonds[:, -1] > 0)
-    mask_hi = (mask_lo == False)
+    mask_lo = single_frame_hbonds[:, -1] > 0
+    mask_hi = mask_lo == False
     return mask_lo, mask_hi
 
 
@@ -243,13 +236,13 @@ def get_n_d_a_pairs(hbonds_result, donor_region=None, acceptor_region=None):
 
     Parameters
     ----------
-    hbonds_result: (n, 9)-shape List
-    donor_region: (2, )-shape List
+    hbonds_result : (n, 9)-shape List
+    donor_region : (2, )-shape List
         z region for donor of interest
-    acceptor_region: (2, )-shape List
+    acceptor_region : (2, )-shape List
         z region for acceptor of interest
 
-    Return
+    Returns
     -------
     n_pairs: int
         total number of given D-A pairs
@@ -257,8 +250,9 @@ def get_n_d_a_pairs(hbonds_result, donor_region=None, acceptor_region=None):
     z_donor = np.abs(hbonds_result[:, -3])
     donor_mask = (z_donor >= donor_region[0]) & (z_donor < donor_region[1])
     z_acceptor = np.abs(hbonds_result[:, -1])
-    acceptor_mask = (z_acceptor >= acceptor_region[0]) & (z_acceptor <
-                                                          acceptor_region[1])
+    acceptor_mask = (z_acceptor >= acceptor_region[0]) & (
+        z_acceptor < acceptor_region[1]
+    )
     mask = donor_mask & acceptor_mask
     n_pairs = len(np.zeros_like(z_donor)[mask])
     return n_pairs

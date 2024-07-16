@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 import numpy as np
 
 
@@ -24,10 +25,8 @@ def make_selection(
     lower_bound = np.min(sel_region)
     upper_bound = np.max(sel_region)
 
-    surf_lo_region = make_relporp_selection(surf_lo,
-                                            [lower_bound, upper_bound])
-    surf_hi_region = make_relporp_selection(surf_hi,
-                                            [-upper_bound, -lower_bound])
+    surf_lo_region = make_relporp_selection(surf_lo, [lower_bound, upper_bound])
+    surf_hi_region = make_relporp_selection(surf_hi, [-upper_bound, -lower_bound])
     select = "(" + surf_lo_region + ") or (" + surf_hi_region + ")"
 
     if c_ag is not None:
@@ -88,10 +87,8 @@ def make_selection_two(
     lower_bound = np.min(sel_region)
     upper_bound = np.max(sel_region)
 
-    surf_lo_region = make_relporp_selection(surf_lo,
-                                            [lower_bound, upper_bound])
-    surf_hi_region = make_relporp_selection(surf_hi,
-                                            [-upper_bound, -lower_bound])
+    surf_lo_region = make_relporp_selection(surf_lo, [lower_bound, upper_bound])
+    surf_hi_region = make_relporp_selection(surf_hi, [-upper_bound, -lower_bound])
     select = [surf_lo_region, surf_hi_region]
 
     if c_ag is not None:

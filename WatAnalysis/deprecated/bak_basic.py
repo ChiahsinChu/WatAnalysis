@@ -1,12 +1,13 @@
-import numpy as np
-from ase import Atoms, Atom
-from statsmodels.tsa import stattools
+# SPDX-License-Identifier: LGPL-3.0-or-later
 import logging
+
+import numpy as np
+from ase import Atom, Atoms
+from statsmodels.tsa import stattools
 
 logger = logging.getLogger(__name__)
 
 from MDAnalysis.analysis.base import AnalysisBase
-from MDAnalysis.transformations import wrap
 
 # TODO: define soft interface
 # TODO: water position relative to soft interface
@@ -35,7 +36,6 @@ uni.trajectory.add_transformations(*workflow)
 
 
 class ECAnalysis(AnalysisBase):
-
     def __init__(self, atomgroup, verbose=True):
         trajectory = atomgroup.universe.trajectory
         super(ECAnalysis, self).__init__(trajectory, verbose=verbose)
@@ -45,13 +45,12 @@ class ECAnalysis(AnalysisBase):
         self.ag_natoms = len(self.ag)
         self.n_frames = len(trajectory)
 
-        #parallel value initial
+        # parallel value initial
         self.para = None
         self._para_region = None
-        #MORE NEED TO CORRECT
+        # MORE NEED TO CORRECT
 
     def _parallel_init(self, *args, **kwargs):
-
         start = self._para_region.start
         stop = self._para_region.stop
         step = self._para_region.step
@@ -59,12 +58,12 @@ class ECAnalysis(AnalysisBase):
         self._prepare()
 
     def run(self, start=None, stop=None, step=None, verbose=None):
-
-        #self._trajectory._reopen()
+        # self._trajectory._reopen()
         if verbose == True:
-            print(" ", end='')
-        super().run(start, stop, step,
-                    verbose)  ### will be problem for conclude operation
+            print(" ", end="")
+        super().run(
+            start, stop, step, verbose
+        )  ### will be problem for conclude operation
 
         if self.para:
             block_result = self._para_block_result()
@@ -72,7 +71,7 @@ class ECAnalysis(AnalysisBase):
                 raise ValueError(
                     "in parallel, block result has not been defined or no data output!"
                 )
-            #logger.info("block_anal finished.")
+            # logger.info("block_anal finished.")
             return block_result
 
     def _para_block_result(self):
@@ -81,7 +80,6 @@ class ECAnalysis(AnalysisBase):
         return None
 
     def _parallel_conclude(self, rawdata):
-
         raise NotImplementedError("ECAnalysis is father class")
 
 
@@ -91,14 +89,16 @@ class WatAdsCCF(ECAnalysis):
     Calculate dynamic indicator functions of ALL water molecules
     """
 
-    def __init__(self,
-                 atomgroup,
-                 cell,
-                 slab_idx,
-                 surf_natoms,
-                 water_idx,
-                 boundary=[2.7, 4.5],
-                 verbose=True):
+    def __init__(
+        self,
+        atomgroup,
+        cell,
+        slab_idx,
+        surf_natoms,
+        water_idx,
+        boundary=[2.7, 4.5],
+        verbose=True,
+    ):
         ECAnalysis.__init__(self, atomgroup=atomgroup, verbose=verbose)
 
         self.cell = cell
@@ -112,10 +112,10 @@ class WatAdsCCF(ECAnalysis):
         """
         Get necessary parameters for further analysis
 
-        all_water_z: 
-        surf_z_ave_each: 
-        cell_volume: 
-        xy_area: 
+        all_water_z:
+        surf_z_ave_each:
+        cell_volume:
+        xy_area:
         """
 
         # get cell parameters
@@ -129,7 +129,7 @@ class WatAdsCCF(ECAnalysis):
         # wrap
         # TODO: add wrap cell
         """
-        for timestep in self.ag.universe.trajectory: 
+        for timestep in self.ag.universe.trajectory:
             timestep.dimensions = self.cellpar.tolist()
         for ts in self.ag.universe.trajectory:
             self.ag.wrap(compound='atoms')
@@ -141,14 +141,17 @@ class WatAdsCCF(ECAnalysis):
         # placeholder for surface ave z positions
         self.surf_z_ave_each = np.zeros((self.n_frames, 2), dtype=np.float32)
         # placeholder for water h
-        self.all_water_h = np.zeros((self.n_frames, len(self.water_idx)),
-                                    dtype=np.float32)
+        self.all_water_h = np.zeros(
+            (self.n_frames, len(self.water_idx)), dtype=np.float32
+        )
         # placeholder for water g
-        self.all_water_g = np.zeros((self.n_frames, len(self.water_idx)),
-                                    dtype=np.float32)
+        self.all_water_g = np.zeros(
+            (self.n_frames, len(self.water_idx)), dtype=np.float32
+        )
         # placeholder for CCF
-        self.all_water_ccf = np.zeros((len(self.water_idx), self.n_frames),
-                                      dtype=np.float32)
+        self.all_water_ccf = np.zeros(
+            (len(self.water_idx), self.n_frames), dtype=np.float32
+        )
 
     def _single_frame(self):
         """
@@ -156,7 +159,7 @@ class WatAdsCCF(ECAnalysis):
 
         Args:
             ts_surf_zlo: list of atomic idx at bottom surface
-            ts_surf_zhi: list of atomic idx at top surface 
+            ts_surf_zhi: list of atomic idx at top surface
             ts_surf_region: [ave z of bottom surface, ave z of top surface]
             ts_water_z: z of water refered to bottom surface
         """
@@ -243,13 +246,13 @@ class WatAdsCCF(ECAnalysis):
             z_hi: average z for upper surface
         """
         # fold all _z_lo about _z_lo.min()
-        #_z_lo = self.ag.universe.trajectory[0].positions[surf_idx[0],2]
+        # _z_lo = self.ag.universe.trajectory[0].positions[surf_idx[0],2]
         tmp = _z_lo.min()
         for z in _z_lo:
             z = z + np.floor((tmp - z) / self.cellpar[2]) * self.cellpar[2]
         z_lo = np.mean(_z_lo)
 
-        #_z_hi = self.ag.universe.trajectory[0].positions[surf_idx[1],2]
+        # _z_hi = self.ag.universe.trajectory[0].positions[surf_idx[1],2]
         tmp = _z_hi.max()
         for z in _z_hi:
             z = z + np.floor((tmp - z) / self.cellpar[2]) * self.cellpar[2]
@@ -274,19 +277,14 @@ class WaterZDensityAnal(ECAnalysis):
     Calculate water density along z direction
     """
 
-    def __init__(self,
-                 atomgroup,
-                 cell,
-                 dz,
-                 slab_idx,
-                 surf_natoms,
-                 water_idx,
-                 verbose=True):
+    def __init__(
+        self, atomgroup, cell, dz, slab_idx, surf_natoms, water_idx, verbose=True
+    ):
         """
         atomgroup: MDA Universe.atoms object
         """
         ECAnalysis.__init__(self, atomgroup=atomgroup, verbose=verbose)
-        #super(WaterZDensityAnal, self).__init__(atomgroup, verbose=verbose)
+        # super(WaterZDensityAnal, self).__init__(atomgroup, verbose=verbose)
 
         self.cell = cell
         self.dz = dz
@@ -299,10 +297,10 @@ class WaterZDensityAnal(ECAnalysis):
         """
         Get necessary parameters for further analysis
 
-        all_water_z: 
-        surf_z_ave_each: 
-        cell_volume: 
-        xy_area: 
+        all_water_z:
+        surf_z_ave_each:
+        cell_volume:
+        xy_area:
         """
         # get cell parameters
         from ase import Atoms
@@ -320,7 +318,7 @@ class WaterZDensityAnal(ECAnalysis):
         # wrap
         # TODO: add wrap cell
         """
-        for timestep in self.ag.universe.trajectory: 
+        for timestep in self.ag.universe.trajectory:
             timestep.dimensions = self.cellpar.tolist()
         for ts in self.ag.universe.trajectory:
             self.ag.wrap(compound='atoms')
@@ -330,8 +328,9 @@ class WaterZDensityAnal(ECAnalysis):
         self._get_surf_idx(self.slab_idx, self.surf_natoms)
 
         # placeholder for water z
-        self.all_water_z = np.zeros((self.n_frames, len(self.water_idx)),
-                                    dtype=np.float32)
+        self.all_water_z = np.zeros(
+            (self.n_frames, len(self.water_idx)), dtype=np.float32
+        )
         # placeholder for surface ave z positions
         self.surf_z_ave_each = np.zeros((self.n_frames, 2), dtype=np.float32)
 
@@ -341,7 +340,7 @@ class WaterZDensityAnal(ECAnalysis):
 
         Args:
             ts_surf_zlo: list of atomic idx at bottom surface
-            ts_surf_zhi: list of atomic idx at top surface 
+            ts_surf_zhi: list of atomic idx at top surface
             ts_surf_region: [ave z of bottom surface, ave z of top surface]
             ts_water_z: z of water refered to bottom surface
         """
@@ -355,19 +354,21 @@ class WaterZDensityAnal(ECAnalysis):
         np.copyto(self.all_water_z[self._frame_index], ts_water_z)
 
     def _conclude(self):
-
-        #self.ag.universe._trajectory._reopen()
+        # self.ag.universe._trajectory._reopen()
 
         self.surf_zlo_ave = self.surf_z_ave_each[:, 0].mean(axis=0)
         self.surf_zhi_ave = self.surf_z_ave_each[:, 1].mean(axis=0)
         self.surf_space = self.surf_zhi_ave - self.surf_zlo_ave
 
-        self.density, z = np.histogram(self.all_water_z,
-                                       bins=np.arange(0, self.surf_space,
-                                                      self.dz))
+        self.density, z = np.histogram(
+            self.all_water_z, bins=np.arange(0, self.surf_space, self.dz)
+        )
         self.final_z = z[:-1] + self.dz / 2
-        self.final_density = (self.density / NA * 18.015) / (
-            self.xy_area * self.dz * ANG_TO_CM**3) / self.n_frames
+        self.final_density = (
+            (self.density / NA * 18.015)
+            / (self.xy_area * self.dz * ANG_TO_CM**3)
+            / self.n_frames
+        )
 
         self.results = (self.final_z, self.final_density)
 
@@ -418,13 +419,13 @@ class WaterZDensityAnal(ECAnalysis):
             z_hi: average z for upper surface
         """
         # fold all _z_lo about _z_lo.min()
-        #_z_lo = self.ag.universe.trajectory[0].positions[surf_idx[0],2]
+        # _z_lo = self.ag.universe.trajectory[0].positions[surf_idx[0],2]
         tmp = _z_lo.min()
         for z in _z_lo:
             z = z + np.floor((tmp - z) / self.cellpar[2]) * self.cellpar[2]
         z_lo = np.mean(_z_lo)
 
-        #_z_hi = self.ag.universe.trajectory[0].positions[surf_idx[1],2]
+        # _z_hi = self.ag.universe.trajectory[0].positions[surf_idx[1],2]
         tmp = _z_hi.max()
         for z in _z_hi:
             z = z + np.floor((tmp - z) / self.cellpar[2]) * self.cellpar[2]
@@ -443,8 +444,7 @@ class WaterZDensityAnal(ECAnalysis):
         return water_z
 
     def _para_block_result(self):
-
-        #data responding to _parallel_conclude rawdata list
+        # data responding to _parallel_conclude rawdata list
         return (list(self.all_water_z), list(self.surf_z_ave_each))
 
     def _parallel_conclude(self, rawdata, *args, **kwargs):
@@ -452,21 +452,23 @@ class WaterZDensityAnal(ECAnalysis):
         # without it, the parallel_exec will be interrupt.
 
         self._parallel_init()
-        self.all_water_z = np.concatenate(
-            [block_result[0] for block_result in rawdata])
+        self.all_water_z = np.concatenate([block_result[0] for block_result in rawdata])
         self.surf_z_ave_each = np.concatenate(
-            [block_result[1] for block_result in rawdata])
+            [block_result[1] for block_result in rawdata]
+        )
         self._conclude()
         return "FINISH PARA CONCLUDE"
 
     def interval_optimize(self, new_dz):
         dz = new_dz
 
-        density, z = np.histogram(self.all_water_z,
-                                  bins=np.arange(0, self.surf_space, dz))
+        density, z = np.histogram(
+            self.all_water_z, bins=np.arange(0, self.surf_space, dz)
+        )
         final_z = z[:-1] + dz / 2
-        final_density = density / (self.xy_area *
-                                   dz) / self.n_frames / self.bulk_density
+        final_density = (
+            density / (self.xy_area * dz) / self.n_frames / self.bulk_density
+        )
 
         return final_z, final_density
 
@@ -477,27 +479,31 @@ class WaterZOriAnal(WaterZDensityAnal):
     Calculate water orientational dipole along z direction
     """
 
-    def __init__(self,
-                 atomgroup,
-                 cell,
-                 dz,
-                 slab_idx,
-                 surf_natoms,
-                 water_idx,
-                 H_idx,
-                 verbose=True,
-                 rearrange=False):
+    def __init__(
+        self,
+        atomgroup,
+        cell,
+        dz,
+        slab_idx,
+        surf_natoms,
+        water_idx,
+        H_idx,
+        verbose=True,
+        rearrange=False,
+    ):
         """
         atomgroup: MDA Universe.atoms object
         """
-        WaterZDensityAnal.__init__(self,
-                                   atomgroup=atomgroup,
-                                   cell=cell,
-                                   dz=dz,
-                                   slab_idx=slab_idx,
-                                   surf_natoms=surf_natoms,
-                                   water_idx=water_idx,
-                                   verbose=verbose)
+        WaterZDensityAnal.__init__(
+            self,
+            atomgroup=atomgroup,
+            cell=cell,
+            dz=dz,
+            slab_idx=slab_idx,
+            surf_natoms=surf_natoms,
+            water_idx=water_idx,
+            verbose=verbose,
+        )
 
         self.H_idx = H_idx
         self.rearrange = rearrange
@@ -506,8 +512,9 @@ class WaterZOriAnal(WaterZDensityAnal):
         super(WaterZOriAnal, self)._prepare()
 
         # placeholder for water dipole
-        self.all_water_ori = np.zeros((self.n_frames, len(self.water_idx)),
-                                      dtype=np.float32)
+        self.all_water_ori = np.zeros(
+            (self.n_frames, len(self.water_idx)), dtype=np.float32
+        )
 
     def _single_frame(self):
         super(WaterZOriAnal, self)._single_frame()
@@ -524,9 +531,9 @@ class WaterZOriAnal(WaterZDensityAnal):
         all_water_ori = np.reshape(self.all_water_ori, [1, -1])
         input_data = np.concatenate(([all_water_z, all_water_ori]), axis=0)
         input_data = np.transpose(input_data)
-        output = common.get_1d_distribution(input_data,
-                                            bins=np.arange(
-                                                0, self.surf_space, self.dz))
+        output = common.get_1d_distribution(
+            input_data, bins=np.arange(0, self.surf_space, self.dz)
+        )
         self.final_ori = output[1].copy()
         for i in range(int(len(self.final_ori) / 2), len(self.final_ori)):
             self.final_ori[i] = -self.final_ori[i]
@@ -546,15 +553,13 @@ class WaterZOriAnal(WaterZDensityAnal):
                 p_hydrogen_0 = H_coord[idx * 2]
                 p_hydrogen_1 = H_coord[idx * 2 + 1]
                 vec_OH_0 = np.empty((1, 3))
-                calc_bonds_vector(p_hydrogen_0,
-                                  p_oxygen,
-                                  box=self.cellpar,
-                                  result=vec_OH_0)
+                calc_bonds_vector(
+                    p_hydrogen_0, p_oxygen, box=self.cellpar, result=vec_OH_0
+                )
                 vec_OH_1 = np.empty((1, 3))
-                calc_bonds_vector(p_hydrogen_1,
-                                  p_oxygen,
-                                  box=self.cellpar,
-                                  result=vec_OH_1)
+                calc_bonds_vector(
+                    p_hydrogen_1, p_oxygen, box=self.cellpar, result=vec_OH_1
+                )
                 vec_OH = np.reshape((vec_OH_0 + vec_OH_1), [-1])
                 water_ori[idx] = vec_OH[2] / np.linalg.norm(vec_OH)
             return water_ori
@@ -578,9 +583,9 @@ class WaterZOriAnal(WaterZDensityAnal):
             *** available for the model without proton hopping!    ***
 
             "simple": O-H-H, mic=False when calculate d_{O-H}
-            "simple_mic": O-H-H, mic=True when calculate d_{O-H} 
-            "rearrange": O... and H..., mic=False when calculate d_{O-H} 
-            "rearrange_mic": O... and H..., mic=True when calculate d_{O-H} 
+            "simple_mic": O-H-H, mic=True when calculate d_{O-H}
+            "rearrange": O... and H..., mic=False when calculate d_{O-H}
+            "rearrange_mic": O... and H..., mic=True when calculate d_{O-H}
             "full": find water with voronoi polyhedra (available for the systems
             with proton hopping)
         """
@@ -629,14 +634,10 @@ class WaterZOriAnal(WaterZDensityAnal):
             pair_dict = init_pair_dict(O_idx)
             for idx in O_idx:
                 pair_dict[idx]["idx"].append(H_idx[2 * idx])
-                bond_vec, D_len = self.get_distance(idx,
-                                                    H_idx[2 * idx],
-                                                    mic=True)
+                bond_vec, D_len = self.get_distance(idx, H_idx[2 * idx], mic=True)
                 pair_dict[idx]["vec"].append(bond_vec)
                 pair_dict[idx]["idx"].append(H_idx[2 * idx + 1])
-                bond_vec, D_len = self.get_distance(idx,
-                                                    H_idx[2 * idx + 1],
-                                                    mic=True)
+                bond_vec, D_len = self.get_distance(idx, H_idx[2 * idx + 1], mic=True)
                 pair_dict[idx]["vec"].append(bond_vec)
             self.set_pbc(cell_pbc)
             return pair_dict
@@ -676,20 +677,18 @@ class WaterZOriAnal(WaterZDensityAnal):
                     # O-H-H
                     atom = Atom(symbol="O", position=atoms[idx].position)
                     waterbox.extend(atom)
-                    p = atoms[idx].position + np.array(
-                        pair_dict[idx]["vec"][0])
+                    p = atoms[idx].position + np.array(pair_dict[idx]["vec"][0])
                     atom = Atom(symbol="H", position=p)
                     waterbox.extend(atom)
-                    p = atoms[idx].position + np.array(
-                        pair_dict[idx]["vec"][1])
+                    p = atoms[idx].position + np.array(pair_dict[idx]["vec"][1])
                     atom = Atom(symbol="H", position=p)
                     waterbox.extend(atom)
                     dip_vec = np.array(pair_dict[idx]["vec"][0]) + np.array(
-                        pair_dict[idx]["vec"][1])
-                    cos_data.append([
-                        atoms[idx].position[2],
-                        dip_vec[2] / np.linalg.norm(dip_vec)
-                    ])
+                        pair_dict[idx]["vec"][1]
+                    )
+                    cos_data.append(
+                        [atoms[idx].position[2], dip_vec[2] / np.linalg.norm(dip_vec)]
+                    )
                 else:
                     # other than water
                     continue
@@ -710,9 +709,9 @@ class WaterZOriAnal(WaterZDensityAnal):
                 atom = Atom(symbol="H", position=p)
                 waterbox.extend(atom)
                 dip_vec = np.array(v["vec"][0]) + np.array(v["vec"][1])
-                cos_data.append([
-                    atoms[k].position[2], dip_vec[2] / np.linalg.norm(dip_vec)
-                ])
+                cos_data.append(
+                    [atoms[k].position[2], dip_vec[2] / np.linalg.norm(dip_vec)]
+                )
             self.waterbox = waterbox
             return np.array(cos_data, dtype=float)
 
@@ -763,13 +762,13 @@ class WaterZOriAnal(WaterZDensityAnal):
             z_hi: average z for upper surface
         """
         # fold all _z_lo about _z_lo.min()
-        #_z_lo = self.ag.universe.trajectory[0].positions[surf_idx[0],2]
+        # _z_lo = self.ag.universe.trajectory[0].positions[surf_idx[0],2]
         tmp = _z_lo.min()
         for z in _z_lo:
             z = z + np.floor((tmp - z) / self.cellpar[2]) * self.cellpar[2]
         z_lo = np.mean(_z_lo)
 
-        #_z_hi = self.ag.universe.trajectory[0].positions[surf_idx[1],2]
+        # _z_hi = self.ag.universe.trajectory[0].positions[surf_idx[1],2]
         tmp = _z_hi.max()
         for z in _z_hi:
             z = z + np.floor((tmp - z) / self.cellpar[2]) * self.cellpar[2]
@@ -824,7 +823,7 @@ class MetalPotDrop(ECAnalysis):
 
         Args:
             ts_coord: coord of snapshot
-            ts_potdrop: potential drop predicted by DP model 
+            ts_potdrop: potential drop predicted by DP model
         """
         ts_coord = self._ts.positions
         ts_coord = np.reshape(ts_coord, -1)

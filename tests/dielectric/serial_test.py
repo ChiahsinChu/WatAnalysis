@@ -1,9 +1,10 @@
-import numpy as np
+# SPDX-License-Identifier: LGPL-3.0-or-later
 import time
-from ase import io
-import MDAnalysis as mda
-from MDAnalysis import transformations as trans
 
+import MDAnalysis as mda
+import numpy as np
+from ase import io
+from MDAnalysis import transformations as trans
 from zjxpack.postprocess.metal import ECMetal
 
 from WatAnalysis.dielectric import InverseDielectricConstant as IDC
@@ -19,7 +20,8 @@ print(surf_ids)
 # load trajectory
 u = mda.Universe(
     "/data/jxzhu/2022_leiden/02.nnp_validation/input/interface.psf",
-    "/data/jxzhu/2022_leiden/02.nnp_validation/input/aimd.xyz")
+    "/data/jxzhu/2022_leiden/02.nnp_validation/input/aimd.xyz",
+)
 transform = trans.boxdimensions.set_dimensions(dim)
 u.trajectory.add_transformations(transform)
 

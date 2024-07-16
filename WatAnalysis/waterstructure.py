@@ -1,4 +1,8 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+from typing import Dict
+
 import numpy as np
+from MDAnalysis import Universe
 from MDAnalysis.analysis.base import AnalysisBase
 # from MDAnalysis.analysis.waterdynamics import AngularDistribution
 from MDAnalysis.analysis.hydrogenbonds.hbond_analysis import \
@@ -6,6 +10,7 @@ from MDAnalysis.analysis.hydrogenbonds.hbond_analysis import \
 from MDAnalysis.core.groups import AtomGroup
 from MDAnalysis.exceptions import NoDataError
 from MDAnalysis.lib.distances import capped_distance, minimize_vectors
+from toolbox.utils.utils import calc_water_density
 
 from WatAnalysis.preprocess import make_selection, make_selection_two
 
@@ -51,7 +56,7 @@ class AngularDistribution(AnalysisBase):
         self.ags = self._make_selections(select)
         self.nbins = nbins
         self.axis = axis
-        
+
     def _prepare(self):
         self.ts_cosOH = []
         self.ts_cosHH = []

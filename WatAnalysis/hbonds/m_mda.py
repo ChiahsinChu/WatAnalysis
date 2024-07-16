@@ -1,23 +1,26 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 import numpy as np
-from MDAnalysis.lib.distances import capped_distance, calc_angles
 from MDAnalysis.analysis.hydrogenbonds.hbond_analysis import HydrogenBondAnalysis
+from MDAnalysis.lib.distances import calc_angles, capped_distance
 
 
 class PartialHBAnalysis(HydrogenBondAnalysis):
-    def __init__(self,
-                 universe,
-                 hb_region=None,
-                 surf_ids=None,
-                 donors_sel=None,
-                 hydrogens_sel=None,
-                 acceptors_sel=None,
-                 between=None,
-                 d_h_cutoff=1.2,
-                 d_a_cutoff=3.0,
-                 angle_cutoff_type="d_h_a",
-                 angle_cutoff=None,
-                 update_selections=True,
-                 update_masks=False):
+    def __init__(
+        self,
+        universe,
+        hb_region=None,
+        surf_ids=None,
+        donors_sel=None,
+        hydrogens_sel=None,
+        acceptors_sel=None,
+        between=None,
+        d_h_cutoff=1.2,
+        d_a_cutoff=3.0,
+        angle_cutoff_type="d_h_a",
+        angle_cutoff=None,
+        update_selections=True,
+        update_masks=False,
+    ):
         """
         Parameters
         ----------
@@ -27,38 +30,44 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         surf_ids : (2, n_surf)-shape List (None)
             atomic indices of surface atoms
             expected to be not None if region is not None
-        angle_cutoff_type: d_h_a or h_d_a
-            type for setting angle cutoff 
+        angle_cutoff_type : d_h_a or h_d_a
+            type for setting angle cutoff
             d_h_a: donor-hydrogen-acceptor
             h_d_a: hydrogen-donor-acceptor
         update_masks : bool (False)
-            if calculate the masks for donors & acceptors individually 
+            if calculate the masks for donors & acceptors individually
             False if donors & acceptors are exactly the same
             and then share their mask
-            
         Other parameters are identical with their counterparts in the parent class.
         """
 
         # set new cutoff attributes
         self.angle_cutoff_type = angle_cutoff_type
-        if self.angle_cutoff_type == 'd_h_a':
+        if self.angle_cutoff_type == "d_h_a":
             if angle_cutoff is None:
                 self.angle_cutoff = 150
             else:
                 self.angle_cutoff = angle_cutoff
-        elif self.angle_cutoff_type == 'h_d_a':
+        elif self.angle_cutoff_type == "h_d_a":
             if angle_cutoff is None:
                 self.angle_cutoff = 30
             else:
                 self.angle_cutoff = angle_cutoff
         else:
-            raise AttributeError('Unknown angle cutoff type!')
+            raise AttributeError("Unknown angle cutoff type!")
         self.update_masks = update_masks
 
-        super(PartialHBAnalysis,
-              self).__init__(universe, donors_sel, hydrogens_sel,
-                             acceptors_sel, between, d_h_cutoff, d_a_cutoff,
-                             self.angle_cutoff, update_selections)
+        super(PartialHBAnalysis, self).__init__(
+            universe,
+            donors_sel,
+            hydrogens_sel,
+            acceptors_sel,
+            between,
+            d_h_cutoff,
+            d_a_cutoff,
+            self.angle_cutoff,
+            update_selections,
+        )
 
         self.surf_ids = surf_ids
         if surf_ids is not None:
@@ -68,30 +77,29 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         self.hb_region = hb_region
         if hb_region is not None:
             self.hb_region = np.array(self.hb_region)
-            if self.hb_region.shape != (2, ):
-                raise AttributeError(
-                    'hb_region is expected to be a (2, )-shape array')
+            if self.hb_region.shape != (2,):
+                raise AttributeError("hb_region is expected to be a (2, )-shape array")
             if self.surf_ids is None:
                 raise AttributeError(
-                    'surf_ids is expected to be not None when hb_region is not None'
+                    "surf_ids is expected to be not None when hb_region is not None"
                 )
 
         # trajectory value initial
         self.ag = universe.atoms
         self.ag_natoms = len(self.ag)
 
-        #parallel value initial
+        # parallel value initial
         self.para = None
         self._para_region = None
 
     def _prepare(self):
         """
-        Add z coords of donors/hydrogens/acceptors w.r.t. the 
+        Add z coords of donors/hydrogens/acceptors w.r.t. the
         nearest surface into results
 
-        self.results.hbonds: 
-        frame_idx, donor_idx, hydrogen_idx, acceptor_idx, HB distance, 
-        HB angle, donor_zcoord, hydrogen_zcoord, acceptor_zcoord 
+        self.results.hbonds:
+        frame_idx, donor_idx, hydrogen_idx, acceptor_idx, HB distance,
+        HB angle, donor_zcoord, hydrogen_zcoord, acceptor_zcoord
         """
         super(PartialHBAnalysis, self)._prepare()
         self.results.hbonds = [[], [], [], [], [], [], [], [], []]
@@ -113,7 +121,7 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
             ts_surf_zhi = self._ts.positions.T[2][self.surf_ids[1]]
             z_surf = [np.mean(ts_surf_zlo), np.mean(ts_surf_zhi)]
             np.copyto(self.zs_surf[self._frame_index], z_surf)
-            #print(z_surf)
+            # print(z_surf)
 
             # Mask to select atoms at specified regions
             mask = self._get_mask(z_surf, self._donors.positions)
@@ -146,23 +154,30 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         # Remove donor-acceptor pairs between pairs of AtomGroups we are not
         # interested in
         if self.between_ags is not None:
-            tmp_donors, tmp_hydrogens, tmp_acceptors = \
-                self._filter_atoms(tmp_donors, tmp_hydrogens, tmp_acceptors)
+            tmp_donors, tmp_hydrogens, tmp_acceptors = self._filter_atoms(
+                tmp_donors, tmp_hydrogens, tmp_acceptors
+            )
 
         # Find angles and compared with the angle cutoff
         if self.angle_cutoff_type == "d_h_a":
             cutoff_angles = np.rad2deg(
-                calc_angles(tmp_donors.positions,
-                            tmp_hydrogens.positions,
-                            tmp_acceptors.positions,
-                            box=box))
+                calc_angles(
+                    tmp_donors.positions,
+                    tmp_hydrogens.positions,
+                    tmp_acceptors.positions,
+                    box=box,
+                )
+            )
             hbond_indices = np.where(cutoff_angles >= self.angle_cutoff)[0]
         elif self.angle_cutoff_type == "h_d_a":
             cutoff_angles = np.rad2deg(
-                calc_angles(tmp_hydrogens.positions,
-                            tmp_donors.positions,
-                            tmp_acceptors.positions,
-                            box=box))
+                calc_angles(
+                    tmp_hydrogens.positions,
+                    tmp_donors.positions,
+                    tmp_acceptors.positions,
+                    box=box,
+                )
+            )
             hbond_indices = np.where(cutoff_angles <= self.angle_cutoff)[0]
 
         # Retrieve atoms, distances and angles of hydrogen bonds
@@ -173,14 +188,15 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         hbond_angles = cutoff_angles[hbond_indices]
         if self.hb_region is not None:
             donor_zcoords = self._get_rel_pos(hbond_donors.positions[:, 2], z_surf)
-            hydrogen_zcoords = self._get_rel_pos(hbond_hydrogens.positions[:, 2],
-                                                z_surf)
-            acceptor_zcoords = self._get_rel_pos(hbond_acceptors.positions[:, 2],
-                                                z_surf)
+            hydrogen_zcoords = self._get_rel_pos(
+                hbond_hydrogens.positions[:, 2], z_surf
+            )
+            acceptor_zcoords = self._get_rel_pos(
+                hbond_acceptors.positions[:, 2], z_surf
+            )
 
         # Store data on hydrogen bonds found at this frame
-        self.results.hbonds[0].extend(
-            np.full_like(hbond_donors, self._ts.frame))
+        self.results.hbonds[0].extend(np.full_like(hbond_donors, self._ts.frame))
         self.results.hbonds[1].extend(hbond_donors.indices)
         self.results.hbonds[2].extend(hbond_hydrogens.indices)
         self.results.hbonds[3].extend(hbond_acceptors.indices)
@@ -214,23 +230,30 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
             # Remove donor-acceptor pairs between pairs of AtomGroups we are not
             # interested in
             if self.between_ags is not None:
-                tmp_donors, tmp_hydrogens, tmp_acceptors = \
-                    self._filter_atoms(tmp_donors, tmp_hydrogens, tmp_acceptors)
+                tmp_donors, tmp_hydrogens, tmp_acceptors = self._filter_atoms(
+                    tmp_donors, tmp_hydrogens, tmp_acceptors
+                )
 
             # Find angles and compared with the angle cutoff
             if self.angle_cutoff_type == "d_h_a":
                 cutoff_angles = np.rad2deg(
-                    calc_angles(tmp_donors.positions,
-                                tmp_hydrogens.positions,
-                                tmp_acceptors.positions,
-                                box=box))
+                    calc_angles(
+                        tmp_donors.positions,
+                        tmp_hydrogens.positions,
+                        tmp_acceptors.positions,
+                        box=box,
+                    )
+                )
                 hbond_indices = np.where(cutoff_angles > self.angle_cutoff)[0]
             elif self.angle_cutoff_type == "h_d_a":
                 cutoff_angles = np.rad2deg(
-                    calc_angles(tmp_hydrogens.positions,
-                                tmp_donors.positions,
-                                tmp_acceptors.positions,
-                                box=box))
+                    calc_angles(
+                        tmp_hydrogens.positions,
+                        tmp_donors.positions,
+                        tmp_acceptors.positions,
+                        box=box,
+                    )
+                )
                 hbond_indices = np.where(cutoff_angles < self.angle_cutoff)[0]
 
             # Retrieve atoms, distances and angles of hydrogen bonds
@@ -239,16 +262,16 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
             hbond_acceptors = tmp_acceptors[hbond_indices]
             hbond_distances = d_a_distances[hbond_indices]
             hbond_angles = cutoff_angles[hbond_indices]
-            donor_zcoords = self._get_rel_pos(hbond_donors.positions[:, 2],
-                                              z_surf)
+            donor_zcoords = self._get_rel_pos(hbond_donors.positions[:, 2], z_surf)
             hydrogen_zcoords = self._get_rel_pos(
-                hbond_hydrogens.positions[:, 2], z_surf)
+                hbond_hydrogens.positions[:, 2], z_surf
+            )
             acceptor_zcoords = self._get_rel_pos(
-                hbond_acceptors.positions[:, 2], z_surf)
+                hbond_acceptors.positions[:, 2], z_surf
+            )
 
             # Store data on hydrogen bonds found at this frame
-            self.results.hbonds[0].extend(
-                np.full_like(hbond_donors, self._ts.frame))
+            self.results.hbonds[0].extend(np.full_like(hbond_donors, self._ts.frame))
             self.results.hbonds[1].extend(hbond_donors.indices)
             self.results.hbonds[2].extend(hbond_hydrogens.indices)
             self.results.hbonds[3].extend(hbond_acceptors.indices)
@@ -264,7 +287,7 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         """
         z_coords = positions[:, 2]
         abs_region = self._get_abs_region(self.hb_region, z_surf)
-        #print(abs_region)
+        # print(abs_region)
         mask_0 = z_coords >= abs_region[0][0]
         mask_1 = z_coords < abs_region[0][1]
         mask_2 = z_coords >= abs_region[1][0]
@@ -299,7 +322,6 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         return rel_pos
 
     def _parallel_init(self, *args, **kwargs):
-
         start = self._para_region.start
         stop = self._para_region.stop
         step = self._para_region.step
@@ -307,12 +329,12 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
         self._prepare()
 
     def run(self, start=None, stop=None, step=None, verbose=None):
-
-        #self._trajectory._reopen()
+        # self._trajectory._reopen()
         if verbose == True:
-            print(" ", end='')
-        super().run(start, stop, step,
-                    verbose)  ### will be problem for conclude operation
+            print(" ", end="")
+        super().run(
+            start, stop, step, verbose
+        )  ### will be problem for conclude operation
 
         if self.para:
             block_result = self._para_block_result()
@@ -320,10 +342,12 @@ class PartialHBAnalysis(HydrogenBondAnalysis):
                 raise ValueError(
                     "in parallel, block result has not been defined or no data output!"
                 )
-            #logger.info("block_anal finished.")
+            # logger.info("block_anal finished.")
             return block_result
 
-    def _para_block_result(self, ):
+    def _para_block_result(
+        self,
+    ):
         return [self.results.hbonds]
 
     def _parallel_conclude(self, rawdata):

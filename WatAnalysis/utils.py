@@ -1,4 +1,6 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 import numpy as np
+
 
 def get_cum_ave(data):
     cum_sum = data.cumsum()

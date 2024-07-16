@@ -1,7 +1,5 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 import numpy as np
-
-from watdyn import parallel
-
 from watdyn.basic import ECAnalysis
 
 
@@ -27,16 +25,16 @@ class HBLifeTime(ECAnalysis):
         self.O_idx = O_idx
         self.H_idx = H_idx
         if len(O_idx) * 2 != len(H_idx):
-            raise AttributeError('Only support pure water box!')
+            raise AttributeError("Only support pure water box!")
 
     def _prepare(self):
         """
         Get necessary parameters for further analysis
 
-        all_water_z: 
-        surf_z_ave_each: 
-        cell_volume: 
-        xy_area: 
+        all_water_z:
+        surf_z_ave_each:
+        cell_volume:
+        xy_area:
         """
 
         # get cell parameters
@@ -49,8 +47,8 @@ class HBLifeTime(ECAnalysis):
 
         # placeholder for characteristic function between i and j
         self.all_water_h = np.zeros(
-            (self.n_frames, len(self.O_idx), len(self.O_idx)),
-            dtype=np.float32)
+            (self.n_frames, len(self.O_idx), len(self.O_idx)), dtype=np.float32
+        )
 
     def _single_frame(self):
         """
@@ -126,13 +124,13 @@ class HBLifeTime(ECAnalysis):
             z_hi: average z for upper surface
         """
         # fold all _z_lo about _z_lo.min()
-        #_z_lo = self.ag.universe.trajectory[0].positions[surf_idx[0],2]
+        # _z_lo = self.ag.universe.trajectory[0].positions[surf_idx[0],2]
         tmp = _z_lo.min()
         for z in _z_lo:
             z = z + np.floor((tmp - z) / self.cellpar[2]) * self.cellpar[2]
         z_lo = np.mean(_z_lo)
 
-        #_z_hi = self.ag.universe.trajectory[0].positions[surf_idx[1],2]
+        # _z_hi = self.ag.universe.trajectory[0].positions[surf_idx[1],2]
         tmp = _z_hi.max()
         for z in _z_hi:
             z = z + np.floor((tmp - z) / self.cellpar[2]) * self.cellpar[2]

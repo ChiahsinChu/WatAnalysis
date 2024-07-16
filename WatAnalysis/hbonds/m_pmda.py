@@ -1,13 +1,11 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """
 This module include some Child Classes of pmda
 analysis method
 """
-from time import sleep
-from matplotlib.pyplot import axis
-import numpy as np
 
-from MDAnalysis.lib.distances import capped_distance, calc_angles
-from numpy.ma import count
+import numpy as np
+from MDAnalysis.lib.distances import calc_angles, capped_distance
 from pmda.hbond_analysis import HydrogenBondAnalysis
 
 
@@ -16,42 +14,45 @@ class ParallelHBAnalysis(HydrogenBondAnalysis):
     Introduction:
         Child Class of HydrogenBondAnalysis in pmda.hbond_analysis
         Parallel analysis of hydrogen bonds **at metal/water interfaces**
-    
+
     Modifications:
-        Parent Class [HydrogenBondAnalysis] returns the hydrogen bonds for 
-        the whole systems. However, more often than not, we concern only the 
+        Parent Class [HydrogenBondAnalysis] returns the hydrogen bonds for
+        the whole systems. However, more often than not, we concern only the
         hydrogen bonds within a given region (e.g. the interface region).
 
     """
 
-    def __init__(self,
-                 universe,
-                 surf_ids=None,
-                 regions=None,
-                 donors_sel=None,
-                 hydrogens_sel=None,
-                 acceptors_sel=None,
-                 d_h_cutoff=1.2,
-                 d_a_cutoff=3.0,
-                 d_h_a_angle_cutoff=150,
-                 update_selections=True):
+    def __init__(
+        self,
+        universe,
+        surf_ids=None,
+        regions=None,
+        donors_sel=None,
+        hydrogens_sel=None,
+        acceptors_sel=None,
+        d_h_cutoff=1.2,
+        d_a_cutoff=3.0,
+        d_h_a_angle_cutoff=150,
+        update_selections=True,
+    ):
         """
         Parameters
         ----------
-            regions: (n, 2)-shape array
-                distance in z direction w.r.t. surface
-                If region is not None, consider only the **donors**
-                in the region; if region is None, consider all donors.
+        regions : (n, 2)-shape array
+            distance in z direction w.r.t. surface
+            If region is not None, consider only the **donors**
+            in the region; if region is None, consider all donors.
         """
-        super(ParallelHBAnalysis,
-              self).__init__(universe,
-                             donors_sel=donors_sel,
-                             hydrogens_sel=hydrogens_sel,
-                             acceptors_sel=acceptors_sel,
-                             d_h_cutoff=d_h_cutoff,
-                             d_a_cutoff=d_a_cutoff,
-                             d_h_a_angle_cutoff=d_h_a_angle_cutoff,
-                             update_selections=update_selections)
+        super(ParallelHBAnalysis, self).__init__(
+            universe,
+            donors_sel=donors_sel,
+            hydrogens_sel=hydrogens_sel,
+            acceptors_sel=acceptors_sel,
+            d_h_cutoff=d_h_cutoff,
+            d_a_cutoff=d_a_cutoff,
+            d_h_a_angle_cutoff=d_h_a_angle_cutoff,
+            update_selections=update_selections,
+        )
         self.surf_ids = surf_ids
         if self.surf_ids is not None:
             self.surf_ids = np.array(self.surf_ids, dtype=np.int32)
@@ -80,20 +81,21 @@ class ParallelHBAnalysis(HydrogenBondAnalysis):
             # get position of upper/lower surface
             if self.surf_ids is None:
                 raise AttributeError(
-                    'surf_ids should be specified when regions is not None')
+                    "surf_ids should be specified when regions is not None"
+                )
             surf_lo = u.atoms[self.surf_ids[0]]
             surf_hi = u.atoms[self.surf_ids[1]]
             z_surf = [
                 np.mean(surf_lo.positions[:, 2]),
-                np.mean(surf_hi.positions[:, 2])
+                np.mean(surf_hi.positions[:, 2]),
             ]
-            #print(z_surf)
+            # print(z_surf)
             sel_command = self._get_sel_command(z_surf, donors_ids)
-            #print(sel_command)
+            # print(sel_command)
             u_donors = donors.universe.select_atoms(sel_command, updating=True)
             donors = u_donors.atoms
 
-            #print(donors.ids)
+            # print(donors.ids)
         # ! <<<<< new code <<<<< !
 
         # find D and A within cutoff distance of one another
@@ -114,10 +116,13 @@ class ParallelHBAnalysis(HydrogenBondAnalysis):
 
         # Find D-H-A angles greater than d_h_a_angle_cutoff
         d_h_a_angles = np.rad2deg(
-            calc_angles(tmp_donors.positions,
-                        tmp_hydrogens.positions,
-                        tmp_acceptors.positions,
-                        box=box))
+            calc_angles(
+                tmp_donors.positions,
+                tmp_hydrogens.positions,
+                tmp_acceptors.positions,
+                box=box,
+            )
+        )
         hbond_indices = np.where(d_h_a_angles > self.d_h_a_angle)[0]
 
         # Retrieve atoms, distances and angles of hydrogen bonds
@@ -142,11 +147,18 @@ class ParallelHBAnalysis(HydrogenBondAnalysis):
 
     def _get_sel_command(self, z_surf, donors_ids):
         abs_regions = self._get_abs_regions(z_surf)
-        #print(abs_regions)
+        # print(abs_regions)
         sel_command = ""
         for region in abs_regions:
-            sel_command = sel_command + "(prop z >=" + str(
-                region[0]) + " and prop z < " + str(region[1]) + ")" + " or "
+            sel_command = (
+                sel_command
+                + "(prop z >="
+                + str(region[0])
+                + " and prop z < "
+                + str(region[1])
+                + ")"
+                + " or "
+            )
         sel_command = "(" + sel_command[:-4] + ") and ("
         for idx in donors_ids:
             sel_command = sel_command + "index " + str(idx) + " or "
