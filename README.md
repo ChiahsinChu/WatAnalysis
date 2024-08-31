@@ -3,19 +3,7 @@
 ## Introduction
 
 This is a package for (parallel) analysis of water structures/dynamics at **metal/water interfaces**.
-Some codes here are developed based on [`MD Analysis`](https://userguide.mdanalysis.org/2.0.0-dev0/index.html) or [`pmda`](https://www.mdanalysis.org/pmda/) package.
-
-This package includes:
-
-- [x] (region-specified) hydrogen bonds analysis
-
-**TO DO LIST**
-
-- [ ] code for trajectory wrapping
-- [x] update region-specific function (donor/acceptor)
-- [x] add z-coord of HB into results
-- [x] add graph-generation module (undirected)
-  - [ ] add attributes of edge(bond length)/node(z w.r.t surface)
+Some codes here are developed based on [`MDAnalysis`](https://userguide.mdanalysis.org/2.0.0-dev0/index.html) or [`pmda`](https://www.mdanalysis.org/pmda/) package.
 
 ## Installation
 
@@ -25,12 +13,7 @@ python setpy.py install
 #python setup.py develop
 ```
 
-## User Guide
-
-1. `waterstructure`: water structure analysis
-
-2. `waterdynamics`: water dynamics analysis
-This module is built on the basis of `MDAnalysis.analysis.waterdynamics`. I adapt the analysis class to the interfacial systems, which is implemented in conjunction with a [modified MDAnalysis package]:
+The analysis classes are adapted for the interfacial systems, which should be used in conjunction with a modified MDAnalysis package:
 
 ```bash
 git clone https://github.com/ChiahsinChu/mdanalysis.git -b jxzhu_dev
@@ -38,6 +21,14 @@ cd mdanalysis && pip install package/
 cd ..
 ```
 
-- instantaneous temperature of selected atoms (AtomGroup in MDA)
+## User Guide
+
+1. `waterstructure`: water structure analysis
+
+2. `waterdynamics`: water dynamics analysis
+
+   This module is built on the basis of `MDAnalysis.analysis.waterdynamics`.
+
+3. `temp`: instantaneous temperature of selected atoms
 
 ## Developer Guide
