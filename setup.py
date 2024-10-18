@@ -7,7 +7,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="WatAnalysis",
-    version="0.0",
+    version="1.0",
     # include all packages in src
     packages=find_packages(),
     include_package_data=True,
