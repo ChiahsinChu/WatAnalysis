@@ -26,6 +26,7 @@ class WaterStructure(AnalysisBase):
         oxygen_sel: str = "name O",
         hydrogen_sel: str = "name H",
         min_vector: bool = True,
+        symm: bool = True,
     ):
         self.universe = universe
         trajectory = self.universe.trajectory
@@ -38,6 +39,7 @@ class WaterStructure(AnalysisBase):
         self.oxygen_ag = self.universe.select_atoms(oxygen_sel)
         self.hydrogen_ag = self.universe.select_atoms(hydrogen_sel)
         self.min_vector = min_vector
+        self.symm = symm
 
     def _prepare(self):
         # placeholder for water z
@@ -102,7 +104,10 @@ class WaterStructure(AnalysisBase):
         grid = out[1][:-1] + np.diff(out[1]) / 2
         rho = calc_water_density(n_water, grid_volume)
         x = grid - self.z_lo
-        y = (np.flip(rho) + rho) / 2
+        if self.symm:
+            y = (np.flip(rho) + rho) / 2
+        else:
+            y = rho
         self.results["rho_water"] = [x, y]
 
         # water orientation
@@ -115,7 +120,8 @@ class WaterStructure(AnalysisBase):
         grid = out[1][:-1] + np.diff(out[1]) / 2
         x = grid - self.z_lo
         y = out[0] / self.n_frames / self.cross_area
-        y = (y - np.flip(y)) / 2
+        if self.symm:
+            y = (y - np.flip(y)) / 2
         self.results["geo_dipole_water"] = [x, y]
 
     def calc_sel_water(self, interval):
