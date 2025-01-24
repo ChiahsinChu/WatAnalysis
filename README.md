@@ -7,9 +7,11 @@ Some codes here are developed based on [`MDAnalysis`](https://userguide.mdanalys
 
 ## Installation
 
-Run the following command in the repository root:
+Run the following commands in the repository root:
 
 ```bash
+git clone https://github.com/ChiahsinChu/WatAnalysis.git
+cd WatAnalysis
 pip install .
 ```
 
@@ -18,8 +20,9 @@ or `pip install -e .` if you want the installation to update as you develop the 
 The analysis classes are adapted for the interfacial systems, which should be used in conjunction with a modified MDAnalysis package:
 
 ```bash
-git clone https://github.com/ChiahsinChu/mdanalysis.git -b jxzhu_dev
-cd mdanalysis && pip install package/
+git clone https://github.com/ChiahsinChu/mdanalysis.git -b devel-relprop
+cd mdanalysis 
+pip install --upgrade package/
 cd ..
 ```
 
