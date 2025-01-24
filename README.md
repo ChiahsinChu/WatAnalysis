@@ -7,9 +7,13 @@ Some codes here are developed based on [`MDAnalysis`](https://userguide.mdanalys
 
 ## Installation
 
+Run the following command in the repository root:
+
 ```bash
 pip install .
 ```
+
+or `pip install -e .` if you want the installation to update as you develop the code.
 
 The analysis classes are adapted for the interfacial systems, which should be used in conjunction with a modified MDAnalysis package:
 
