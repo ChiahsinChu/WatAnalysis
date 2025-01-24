@@ -8,9 +8,7 @@ Some codes here are developed based on [`MDAnalysis`](https://userguide.mdanalys
 ## Installation
 
 ```bash
-python setpy.py install
-# if you want to modify the code later, use the developer mode
-#python setup.py develop
+pip install .
 ```
 
 The analysis classes are adapted for the interfacial systems, which should be used in conjunction with a modified MDAnalysis package:
