@@ -17,38 +17,60 @@ from .preprocess import make_selection, make_selection_two
 
 
 class WaterStructure(AnalysisBase):
+    """Analysis class for studying the structure and properties of water molecules
+    in a given molecular dynamics simulation.
+    Parameters
+    ----------
+    universe : Universe
+        The MDAnalysis Universe object containing the simulation data.
+    surf_ids : Union[List, np.ndarray], optional
+        List or array of surface atom indices.
+    **kwargs : dict
+        Additional keyword arguments for customization:
+        - verbose : bool, optional
+            If True, enables verbose output.
+        - axis : int, optional
+            The axis along which the analysis is performed (default is 2).
+        - oxygen_sel : str, optional
+            Selection string for oxygen atoms (default is "name O").
+        - hydrogen_sel : str, optional
+            Selection string for hydrogen atoms (default is "name H").
+        - min_vector : bool, optional
+            If True, uses minimum image convention for vectors (default is True).
+        - dz : float, optional
+            Bin width for histogram calculations (default is 0.1).
+        - oh_cutoff : float, optional
+            Cutoff distance for identifying water molecules (default is 1.3).
+    Methods
+    -------
+    run()
+        Run the analysis and computes the results.
+    calc_sel_water(interval, n_bins=90)
+        Calculates properties of water in a selected region relative to the surfaces."""
+
     def __init__(
-        self,
-        universe: Universe,
-        axis: int = 2,
-        verbose: bool = False,
-        surf_ids: Union[List, np.ndarray] = None,
-        oxygen_sel: str = "name O",
-        hydrogen_sel: str = "name H",
-        min_vector: bool = True,
-        symm: bool = True,
-        oh_cutoff: float = 1.3,
-        dz: float = 0.1,
+        self, universe: Universe, surf_ids: Union[List, np.ndarray] = None, **kwargs
     ):
         self.universe = universe
         trajectory = self.universe.trajectory
-        super().__init__(trajectory, verbose=verbose)
+        super().__init__(trajectory, verbose=kwargs.get("verbose", False))
         self.n_frames = len(trajectory)
 
-        self.axis = axis
+        self.axis = kwargs.get("axis", 2)
         self.ave_axis = np.delete(np.arange(3), self.axis)
         self.surf_ids = surf_ids
-        self.oxygen_ag = self.universe.select_atoms(oxygen_sel)
-        self.hydrogen_ag = self.universe.select_atoms(hydrogen_sel)
-        self.min_vector = min_vector
-        self.symm = symm
-        self.dz = dz
+        self.oxygen_ag = self.universe.select_atoms(kwargs.get("oxygen_sel", "name O"))
+        self.hydrogen_ag = self.universe.select_atoms(
+            kwargs.get("hydrogen_sel", "name H")
+        )
+        self.min_vector = kwargs.get("min_vector", True)
+        self.dz = kwargs.get("dz", 0.1)
 
         self.water_dict = utils.identify_water_molecules(
             self.hydrogen_ag.positions,
             self.oxygen_ag.positions,
             self.universe.dimensions,
-            oh_cutoff=oh_cutoff,
+            oh_cutoff=kwargs.get("oh_cutoff", 1.3),
         )
 
         self.z_water = None
@@ -119,43 +141,73 @@ class WaterStructure(AnalysisBase):
             ref=box_length / 2,
         )
 
-        z1_mean = z1.mean()
-        z2_mean = z2.mean()
-
         # Update attributes
         self.z1 = z1
         self.z2 = z2
         self.z_water = z_water
 
-        z1_mean = np.mean(z1)
-        z2_mean = np.mean(z2)
+        self.results.rho_water = self.density_profile()
+        self.results.geo_dipole_water = self.orientation_profile()
 
-        # Water density: check valid water molecules (O with 2 H)
-        valid = ~np.isnan(self.geo_dipole_water.flatten())
+    def density_profile(self, only_valid_dipoles=False):
+        """
+        Calculate density profile using histogram
+        """
+        z1_mean = np.mean(self.z1)
+        z2_mean = np.mean(self.z2)
 
+        # Check valid water molecules (O with 2 H)
+        # In this way, the density corresponds to the
+        # orientation profile
+        if only_valid_dipoles:
+            valid = ~np.isnan(self.geo_dipole_water.flatten())
+        else:
+            valid = np.ones(self.z_water.flatten().size, dtype=bool)
+
+        # Make histogram
         counts, bin_edges = np.histogram(
-            z_water.flatten()[valid],
+            self.z_water.flatten()[valid],
             bins=int((z2_mean - z1_mean) / self.dz),
             range=(z1_mean, z2_mean),
         )
+
+        # Spatial coordinates
+        z = utils.bin_edges_to_grid(bin_edges)
+
+        # Density values
         n_water = counts / self.n_frames
         grid_volume = np.diff(bin_edges) * self.cross_area
-        self.results.rho_water = [
-            utils.bin_edges_to_grid(bin_edges),
-            utils.water_density(n_water, grid_volume),
-        ]
+        rho = utils.water_density(n_water, grid_volume)
+        return z, rho
 
-        # Water orientation
+    def orientation_profile(self):
+        """
+        Calculate orientation profile using histogram
+        """
+        z1_mean = np.mean(self.z1)
+        z2_mean = np.mean(self.z2)
+
+        # Check valid water molecules (O with 2 H)
+        valid = ~np.isnan(self.geo_dipole_water.flatten())
+
         counts, bin_edges = np.histogram(
-            z_water.flatten()[valid],
+            self.z_water.flatten()[valid],
             bins=int((z2_mean - z1_mean) / self.dz),
             range=(z1_mean, z2_mean),
             weights=self.geo_dipole_water.flatten()[valid],
         )
-        self.results.geo_dipole_water = [
-            utils.bin_edges_to_grid(bin_edges),
-            counts / self.n_frames,
-        ]
+
+        z = utils.bin_edges_to_grid(bin_edges)
+        y = counts / self.n_frames
+        return z, y
+
+    def costheta_profile(self):
+        """
+        Dipole angle profile
+        """
+        z, rho = self.density_profile(only_valid_dipoles=True)
+        _, rho_cos_theta = self.orientation_profile()
+        return z, rho_cos_theta / rho
 
     def calc_sel_water(self, interval, n_bins=90):
         """
