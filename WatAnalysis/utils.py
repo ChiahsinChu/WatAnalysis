@@ -141,24 +141,19 @@ def get_dipoles(
     np.ndarray
         Array of dipole vectors for each oxygen atom. Entries are NaN for non-water oxygen atoms.
     """
-    o_indices = np.array([key for key, _ in water_dict.items()])
-    h_indices = np.array([value for _, value in water_dict.items()])
+    o_indices = np.array([k for k in water_dict.keys()])
+    h1_indices = np.array([v[0] for v in water_dict.values()])
+    h2_indices = np.array([v[1] for v in water_dict.values()])
+
+    oh1_vectors = h_positions[h1_indices] - o_positions
+    oh2_vectors = h_positions[h2_indices] - o_positions
 
     if mic:
-        oh_1 = minimize_vectors(
-            h_positions[h_indices[:, 0]] - o_positions[o_indices],
-            box=box,
-        )
-        oh_2 = minimize_vectors(
-            h_positions[h_indices[:, 1]] - o_positions[o_indices],
-            box=box,
-        )
-    else:
-        oh_1 = h_positions[h_indices[:, 0]] - o_positions[o_indices]
-        oh_2 = h_positions[h_indices[:, 1]] - o_positions[o_indices]
+        oh1_vectors = minimize_vectors(oh1_vectors, box)
+        oh2_vectors = minimize_vectors(oh2_vectors, box)
 
     dipoles = np.ones(o_positions.shape) * np.nan
-    dipoles[o_indices, :] = oh_1 + oh_2
+    dipoles[o_indices, :] = oh1_vectors + oh2_vectors
     return dipoles
 
 
