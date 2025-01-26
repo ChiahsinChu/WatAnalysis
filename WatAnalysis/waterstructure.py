@@ -169,7 +169,7 @@ class WaterStructure(AnalysisBase):
         self.results.geo_dipole_water = self.orientation_profile()
 
     def density_profile(
-        self, only_valid_dipoles: bool = False
+        self, only_valid_dipoles: bool = False, sym: bool = False
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Calculate the density profile of water molecules using a histogram.
@@ -212,9 +212,11 @@ class WaterStructure(AnalysisBase):
         n_water = counts / self.n_frames
         grid_volume = np.diff(bin_edges) * self.cross_area
         rho = utils.water_density(n_water, grid_volume)
+        if sym:
+            rho = (rho[::-1] + rho) / 2
         return z, rho
 
-    def orientation_profile(self) -> Tuple[np.ndarray, np.ndarray]:
+    def orientation_profile(self, sym: bool = False) -> Tuple[np.ndarray, np.ndarray]:
         """
         Calculate the orientation profile of water molecules.
         This method computes the orientation profile of water molecules
@@ -243,9 +245,11 @@ class WaterStructure(AnalysisBase):
 
         z = utils.bin_edges_to_grid(bin_edges)
         rho_cos_theta = counts / self.n_frames
+        if sym:
+            rho_cos_theta = (rho_cos_theta - rho_cos_theta[::-1]) / 2
         return z, rho_cos_theta
 
-    def costheta_profile(self) -> Tuple[np.ndarray, np.ndarray]:
+    def costheta_profile(self, sym: bool = False) -> Tuple[np.ndarray, np.ndarray]:
         """
         Calculate the cosine theta profile.
         This method computes the cosine of the angle theta profile by dividing
@@ -255,8 +259,8 @@ class WaterStructure(AnalysisBase):
                 - z (array-like): The z-coordinates.
                 - rho_cos_theta (array-like): The cosine theta profile.
         """
-        z, rho = self.density_profile(only_valid_dipoles=True)
-        _, rho_cos_theta = self.orientation_profile()
+        z, rho = self.density_profile(only_valid_dipoles=True, sym=sym)
+        _, rho_cos_theta = self.orientation_profile(sym=sym)
         return z, rho_cos_theta / rho
 
     def calc_sel_water(
@@ -277,8 +281,8 @@ class WaterStructure(AnalysisBase):
         n_water : float
             The number of water molecules in the selected region.
         histogram : list[ndarray]
-            A list [x, y] containing the grid (x) and the density (y) of the
-            histogram.
+            A list [x, y] containing the grid of angles (x) and the
+            probability density of the angular distribution (y).
         """
         valid = ~np.isnan(self.geo_dipole_water)
         mask = (
@@ -288,25 +292,29 @@ class WaterStructure(AnalysisBase):
         )
 
         n_water = np.count_nonzero(mask, axis=1)
-        theta_lo = np.arccos(self.geo_dipole_water[mask].flatten()) / np.pi * 180
+        lower_surface_angles = (
+            np.arccos(self.geo_dipole_water[mask].flatten()) / np.pi * 180
+        )
 
         mask = (
             (self.z_water < (self.z2[:, np.newaxis] - interval[0]))
             & (self.z_water >= (self.z2[:, np.newaxis] - interval[1]))
             & valid
         )
-        theta_hi = np.arccos(-self.geo_dipole_water[mask].flatten()) / np.pi * 180
+        upper_surface_angles = (
+            np.arccos(-self.geo_dipole_water[mask].flatten()) / np.pi * 180
+        )
         n_water += np.count_nonzero(mask, axis=1)
 
-        theta = np.concatenate([theta_lo, theta_hi])
-        prob_density, bin_edges = np.histogram(
-            theta,
+        combined_angles = np.concatenate([lower_surface_angles, upper_surface_angles])
+        angle_distribution, bin_edges = np.histogram(
+            combined_angles,
             bins=n_bins,
             range=(0.0, 180.0),
             density=True,
         )
         grid = utils.bin_edges_to_grid(bin_edges)
-        return n_water, [grid, prob_density]
+        return n_water, [grid, angle_distribution]
 
 
 class WatCoverage(AnalysisBase):
