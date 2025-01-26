@@ -88,7 +88,7 @@ class WaterStructure(AnalysisBase):
         )
 
         self.z_water = None
-        self.geo_dipole_water = None
+        self.cos_theta = None
         self.z1 = None
         self.z2 = None
         self.cross_area = None
@@ -96,7 +96,7 @@ class WaterStructure(AnalysisBase):
     def _prepare(self):
         # Initialize empty arrays
         self.z_water = np.zeros((self.n_frames, self.oxygen_ag.n_atoms))
-        self.geo_dipole_water = np.zeros((self.n_frames, self.oxygen_ag.n_atoms))
+        self.cos_theta = np.zeros((self.n_frames, self.oxygen_ag.n_atoms))
         self.z1 = np.zeros(self.n_frames)
         self.z2 = np.zeros(self.n_frames)
         self.cross_area = 0.0
@@ -134,7 +134,7 @@ class WaterStructure(AnalysisBase):
             mic=self.min_vector,
         )
         cos_theta = (dipole[:, self.axis]) / np.linalg.norm(dipole, axis=-1)
-        np.copyto(self.geo_dipole_water[self._frame_index], cos_theta)
+        np.copyto(self.cos_theta[self._frame_index], cos_theta)
 
     def _conclude(self):
         # Average surface area
@@ -193,7 +193,7 @@ class WaterStructure(AnalysisBase):
         # In this way, the density rho corresponds to the density in the
         # orientation profile rho * <cos theta>
         if only_valid_dipoles:
-            valid = ~np.isnan(self.geo_dipole_water.flatten())
+            valid = ~np.isnan(self.cos_theta.flatten())
         else:
             valid = np.ones(self.z_water.flatten().size, dtype=bool)
 
@@ -233,13 +233,13 @@ class WaterStructure(AnalysisBase):
         z2_mean = np.mean(self.z2)
 
         # Check valid water molecules (O with 2 H)
-        valid = ~np.isnan(self.geo_dipole_water.flatten())
+        valid = ~np.isnan(self.cos_theta.flatten())
 
         counts, bin_edges = np.histogram(
             self.z_water.flatten()[valid],
             bins=int((z2_mean - z1_mean) / self.dz),
             range=(z1_mean, z2_mean),
-            weights=self.geo_dipole_water.flatten()[valid],
+            weights=self.cos_theta.flatten()[valid],
         )
 
         z = utils.bin_edges_to_grid(bin_edges)
@@ -283,7 +283,7 @@ class WaterStructure(AnalysisBase):
             A list [x, y] containing the grid of angles (x) and the
             probability density of the angular distribution (y).
         """
-        valid = ~np.isnan(self.geo_dipole_water)
+        valid = ~np.isnan(self.cos_theta)
         mask = (
             (self.z_water > (self.z1[:, np.newaxis] + interval[0]))
             & (self.z_water <= (self.z1[:, np.newaxis] + interval[1]))
@@ -291,18 +291,14 @@ class WaterStructure(AnalysisBase):
         )
 
         n_water = np.count_nonzero(mask, axis=1)
-        lower_surface_angles = (
-            np.arccos(self.geo_dipole_water[mask].flatten()) / np.pi * 180
-        )
+        lower_surface_angles = np.arccos(self.cos_theta[mask].flatten()) / np.pi * 180
 
         mask = (
             (self.z_water < (self.z2[:, np.newaxis] - interval[0]))
             & (self.z_water >= (self.z2[:, np.newaxis] - interval[1]))
             & valid
         )
-        upper_surface_angles = (
-            np.arccos(-self.geo_dipole_water[mask].flatten()) / np.pi * 180
-        )
+        upper_surface_angles = np.arccos(-self.cos_theta[mask].flatten()) / np.pi * 180
         n_water += np.count_nonzero(mask, axis=1)
 
         combined_angles = np.concatenate([lower_surface_angles, upper_surface_angles])
