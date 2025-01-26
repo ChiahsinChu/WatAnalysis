@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
-from typing import List, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 from ase.cell import Cell
@@ -17,36 +17,51 @@ from .preprocess import make_selection, make_selection_two
 
 
 class WaterStructure(AnalysisBase):
-    """Analysis class for studying the structure and properties of water molecules
+    """
+    Analysis class for studying the structure and properties of water molecules
     in a given molecular dynamics simulation.
+
     Parameters
     ----------
     universe : Universe
         The MDAnalysis Universe object containing the simulation data.
     surf_ids : Union[List, np.ndarray], optional
-        List or array of surface atom indices.
+        List or array of surface atom indices of the form [surf_1, surf_2]
+        where surf_1 and surf_2 are arrays containing the indices corresponding
+        to the left surface and right surface, respectively.
     **kwargs : dict
         Additional keyword arguments for customization:
-        - verbose : bool, optional
+        - verbose : bool, optional.
             If True, enables verbose output.
-        - axis : int, optional
+        - axis : int, optional.
             The axis along which the analysis is performed (default is 2).
-        - oxygen_sel : str, optional
+            x=0, y=1, z=2.
+        - oxygen_sel : str, optional.
             Selection string for oxygen atoms (default is "name O").
-        - hydrogen_sel : str, optional
+        - hydrogen_sel : str, optional.
             Selection string for hydrogen atoms (default is "name H").
-        - min_vector : bool, optional
+        - min_vector : bool, optional.
             If True, uses minimum image convention for vectors (default is True).
-        - dz : float, optional
-            Bin width for histogram calculations (default is 0.1).
-        - oh_cutoff : float, optional
-            Cutoff distance for identifying water molecules (default is 1.3).
+            Can be disabled for unwrapped trajectories to compute faster.
+        - dz : float, optional.
+            Bin width for histogram calculations in Angstroms. Must be positive.
+            (Default is 0.1.)
+        - oh_cutoff : float, optional.
+            Cutoff distance for identifying water molecules in Angstroms (default is 1.3).
+
     Methods
     -------
     run()
         Run the analysis and computes the results.
+    density_profile()
+        Compute the density profile (rho).
+    costheta_profile()
+        Compute the mean dipole angle profile (<cos theta>).
+    orientation_profile(self):
+        Compute the orientation profile (rho * <cos theta>).
     calc_sel_water(interval, n_bins=90)
-        Calculates properties of water in a selected region relative to the surfaces."""
+        Calculates properties of water in a selected region relative to the surfaces.
+    """
 
     def __init__(
         self, universe: Universe, surf_ids: Union[List, np.ndarray] = None, **kwargs
@@ -80,7 +95,7 @@ class WaterStructure(AnalysisBase):
         self.cross_area = None
 
     def _prepare(self):
-        # placeholder for water z
+        # Initialize empty arrays
         self.z_water = np.zeros((self.n_frames, self.oxygen_ag.n_atoms))
         self.geo_dipole_water = np.zeros((self.n_frames, self.oxygen_ag.n_atoms))
         self.z1 = np.zeros(self.n_frames)
@@ -88,7 +103,6 @@ class WaterStructure(AnalysisBase):
         self.cross_area = 0.0
 
     def _single_frame(self):
-        # dimension
         ts_box = self._ts.dimensions
         ts_area = Cell.new(ts_box).area(self.axis)
         self.cross_area += ts_area
@@ -97,10 +111,11 @@ class WaterStructure(AnalysisBase):
         coords_oxygen = self.oxygen_ag.positions
         coords_hydrogen = self.hydrogen_ag.positions
 
-        # surface position (absolute)
+        # Absolute surface positions
         surf1_z = coords[self.surf_ids[0], self.axis]
         surf2_z = coords[self.surf_ids[1], self.axis]
-        box_length = ts_box[2]
+        box_length = ts_box[self.axis]
+        # Use MIC in case part of the surface crosses the cell boundaries
         self.z1[self._frame_index] = utils.mic_1d(
             surf1_z, box_length, ref=surf1_z[0]
         ).mean()
@@ -108,10 +123,10 @@ class WaterStructure(AnalysisBase):
             surf2_z, box_length, ref=surf2_z[0]
         ).mean()
 
-        # water density
+        # Save oxygen locations for water density analysis
         np.copyto(self.z_water[self._frame_index], coords_oxygen[:, self.axis])
 
-        # Dipoles
+        # Calculate dipoles and project on self.axis
         dipole = utils.get_dipoles(
             coords_hydrogen,
             coords_oxygen,
@@ -123,42 +138,61 @@ class WaterStructure(AnalysisBase):
         np.copyto(self.geo_dipole_water[self._frame_index], cos_theta)
 
     def _conclude(self):
-        # ave surface area
+        # Average surface area
         self.cross_area /= self.n_frames
 
-        # Refer everything to the left surface (z1), then move everything
-        # to be within one cell length positive of z1
-        box_length = self.universe.dimensions[2]
+        box_length = self.universe.dimensions[self.axis]
+        # Step 1: Set z1 as the reference point (zero)
         z1 = np.zeros(self.z1.shape)
+        # Step 2: Calculate z2 positions relative to z1 using minimum image convention
+        # By setting ref=box_length/2, all positions are within one cell length positive of z1
         z2 = utils.mic_1d(
             self.z2 - self.z1,
             box_length=box_length,
             ref=box_length / 2,
         )
+        # Step 3: Calculate z_water relative to z_1, ensuring that all water positions are
+        # within one cell length positive of z1.
         z_water = utils.mic_1d(
             self.z_water - self.z1[:, np.newaxis],
             box_length=box_length,
             ref=box_length / 2,
         )
 
-        # Update attributes
+        # Update attributes to the final relative coordinates
         self.z1 = z1
         self.z2 = z2
         self.z_water = z_water
 
+        # Store density profiles (future: better variable names)
         self.results.rho_water = self.density_profile()
         self.results.geo_dipole_water = self.orientation_profile()
 
-    def density_profile(self, only_valid_dipoles=False):
+    def density_profile(
+        self, only_valid_dipoles: bool = False
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Calculate density profile using histogram
+        Calculate the density profile of water molecules using a histogram.
+
+        Parameters
+        ----------
+        only_valid_dipoles : bool, optional
+            If True, only consider valid water molecules (O with 2 H) for the
+            density calculation. Default is False.
+
+        Returns
+        -------
+        z : ndarray
+            The spatial coordinates corresponding to the bin centers.
+        rho : ndarray
+            The density values of water molecules.
         """
         z1_mean = np.mean(self.z1)
         z2_mean = np.mean(self.z2)
 
         # Check valid water molecules (O with 2 H)
-        # In this way, the density corresponds to the
-        # orientation profile
+        # In this way, the density rho corresponds to the density in the
+        # orientation profile rho * <cos theta>
         if only_valid_dipoles:
             valid = ~np.isnan(self.geo_dipole_water.flatten())
         else:
@@ -180,9 +214,19 @@ class WaterStructure(AnalysisBase):
         rho = utils.water_density(n_water, grid_volume)
         return z, rho
 
-    def orientation_profile(self):
+    def orientation_profile(self) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Calculate orientation profile using histogram
+        Calculate the orientation profile of water molecules.
+        This method computes the orientation profile of water molecules
+        by calculating the mean positions along the z-axis and creating
+        a histogram of the dipole orientations.
+
+        Returns
+        -------
+        z : ndarray
+            The grid points along the z-axis.
+        rho_cos_theta : ndarray
+            The orientation profile of water molecules.
         """
         z1_mean = np.mean(self.z1)
         z2_mean = np.mean(self.z2)
@@ -198,20 +242,43 @@ class WaterStructure(AnalysisBase):
         )
 
         z = utils.bin_edges_to_grid(bin_edges)
-        y = counts / self.n_frames
-        return z, y
+        rho_cos_theta = counts / self.n_frames
+        return z, rho_cos_theta
 
-    def costheta_profile(self):
+    def costheta_profile(self) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Dipole angle profile
+        Calculate the cosine theta profile.
+        This method computes the cosine of the angle theta profile by dividing
+        the orientation profile by the density profile of valid dipoles.
+        Returns:
+            tuple: A tuple containing:
+                - z (array-like): The z-coordinates.
+                - rho_cos_theta (array-like): The cosine theta profile.
         """
         z, rho = self.density_profile(only_valid_dipoles=True)
         _, rho_cos_theta = self.orientation_profile()
         return z, rho_cos_theta / rho
 
-    def calc_sel_water(self, interval, n_bins=90):
+    def calc_sel_water(
+        self, interval: Tuple[float, float], n_bins: int = 90
+    ) -> Tuple[float, list[np.ndarray]]:
         """
-        Calculate properties of water in a selected region relative to the surfaces
+        Calculate properties of water in a selected region relative to the surfaces.
+
+        Parameters
+        ----------
+        interval : tuple of float
+            The interval range to select the region of interest.
+        n_bins : int, optional
+            The number of bins for the histogram (default is 90).
+
+        Returns
+        -------
+        n_water : float
+            The number of water molecules in the selected region.
+        histogram : list[ndarray]
+            A list [x, y] containing the grid (x) and the density (y) of the
+            histogram.
         """
         valid = ~np.isnan(self.geo_dipole_water)
         mask = (
@@ -232,14 +299,14 @@ class WaterStructure(AnalysisBase):
         n_water += np.count_nonzero(mask, axis=1)
 
         theta = np.concatenate([theta_lo, theta_hi])
-        out = np.histogram(
+        prob_density, bin_edges = np.histogram(
             theta,
             bins=n_bins,
             range=(0.0, 180.0),
             density=True,
         )
-        grid = out[1][:-1] + np.diff(out[1]) / 2
-        return n_water, [grid, out[0]]
+        grid = utils.bin_edges_to_grid(bin_edges)
+        return n_water, [grid, prob_density]
 
 
 class WatCoverage(AnalysisBase):
