@@ -72,7 +72,6 @@ class WaterStructure(AnalysisBase):
         self.n_frames = len(trajectory)
 
         self.axis = kwargs.get("axis", 2)
-        self.ave_axis = np.delete(np.arange(3), self.axis)
         self.surf_ids = surf_ids
         self.oxygen_ag = self.universe.select_atoms(kwargs.get("oxygen_sel", "name O"))
         self.hydrogen_ag = self.universe.select_atoms(
