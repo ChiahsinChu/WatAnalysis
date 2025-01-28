@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "WatAnalysis"
+version = "1.0"
+description = "A package for analyzing water structures in ab initio molecular dynamics simulations."
+readme = "README.md"
+license = { file = ".license-header.txt" }
+
+[project.urls]
+Homepage = "https://github.com/ChiahsinChu/WatAnalysis"
+

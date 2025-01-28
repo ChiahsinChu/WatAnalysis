@@ -7,18 +7,22 @@ Some codes here are developed based on [`MDAnalysis`](https://userguide.mdanalys
 
 ## Installation
 
+This package (in particular the hydrogen bond functionality) requires a custom version of MDAnalysis to select specific interfacial regions.
+Install it before installing WatAnalysis:
+
 ```bash
-python setpy.py install
-# if you want to modify the code later, use the developer mode
-#python setup.py develop
+git clone https://github.com/ChiahsinChu/mdanalysis.git -b devel-relprop
+cd mdanalysis 
+pip install --upgrade package/
+cd ..
 ```
 
-The analysis classes are adapted for the interfacial systems, which should be used in conjunction with a modified MDAnalysis package:
+To install WatAnalysis, clone the repository and run the following commands in the repository root:
 
 ```bash
-git clone https://github.com/ChiahsinChu/mdanalysis.git -b jxzhu_dev
-cd mdanalysis && pip install package/
-cd ..
+git clone https://github.com/ChiahsinChu/WatAnalysis.git
+cd WatAnalysis
+pip install .
 ```
 
 ## User Guide
