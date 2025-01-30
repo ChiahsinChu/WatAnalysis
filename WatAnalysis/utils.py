@@ -1,18 +1,18 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 from typing import List, Dict
 import numpy as np
-from MDAnalysis.lib.distances import capped_distance
+from MDAnalysis.lib.distances import distance_array
 
 
 def get_cum_ave(data):
     """
     Calculate the cumulative average of a data array.
-    
+
     Parameters
     ----------
     data : np.ndarray
         Array of data points.
-    
+
     Returns
     -------
     np.ndarray
@@ -45,6 +45,7 @@ def identify_water_molecules(
     o_positions: np.ndarray,
     box: np.ndarray,
     oh_cutoff: float,
+    ignore_warnings: bool = False,
 ) -> Dict[int, List[int]]:
     """
     Identify water molecules based on proximity of hydrogen and oxygen atoms.
@@ -59,28 +60,31 @@ def identify_water_molecules(
         Simulation cell defining periodic boundaries.
     oh_cutoff : float
         Maximum O-H distance to consider as a bond.
+    ignore_warnings : bool
+        If True, ignore warnings about non-water species
 
     Returns
     -------
     Dict[int, List[int]]
         Dictionary mapping oxygen atom indices to lists of two bonded hydrogen atom indices.
     """
-    water_dict = {i: [] for i in range(o_positions.shape[0])}
+    water_dict = {}
 
-    for h_idx, hpos in enumerate(h_positions):
-        pairs, distances = capped_distance(
-            hpos,
-            o_positions,
-            max_cutoff=oh_cutoff,
-            box=box,
-            return_distances=True,
-        )
-
-        if len(pairs) > 0:
-            closest_o_idx = pairs[np.argmin(distances)][1]
-            water_dict[closest_o_idx].append(h_idx)
-
-    water_dict = {key: value for key, value in water_dict.items() if len(value) == 2}
+    all_distances = np.zeros((o_positions.shape[0], h_positions.shape[0]))
+    distance_array(o_positions, h_positions, result=all_distances, box=box)
+    saved_h_ids = []
+    for ii, ds in enumerate(all_distances):
+        mask = ds < oh_cutoff
+        if np.sum(mask) != 2:
+            if not ignore_warnings:
+                raise Warning(
+                    f"Oxygen atom {ii} has {np.sum(mask)} hydrogen atoms within {oh_cutoff} Å."
+                )
+            continue
+        water_dict[ii] = np.where(mask)[0].tolist()
+        saved_h_ids.append(water_dict[ii])
+    saved_h_ids = np.concatenate(saved_h_ids)
+    assert np.unique(saved_h_ids).shape[0] == saved_h_ids.shape[0]
     return water_dict
 
 

@@ -92,6 +92,8 @@ class WaterStructure(AnalysisBase):
             (Default is 0.1.)
         - oh_cutoff : float, optional.
             Cutoff distance for identifying water molecules in Angstroms (default is 1.3).
+        - ignore_warnings : bool, optional.
+            If True, ignore warnings about non-water species (default is False).
 
     Methods
     -------
@@ -141,6 +143,7 @@ class WaterStructure(AnalysisBase):
             self.oxygen_ag.positions,
             self.universe.dimensions,
             oh_cutoff=kwargs.get("oh_cutoff", 1.3),
+            ignore_warnings=kwargs.get("ignore_warnings", False),
         )
 
         self.z_water = None
