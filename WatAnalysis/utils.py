@@ -1,10 +1,23 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 from typing import List, Dict
 import numpy as np
-from MDAnalysis.lib.distances import minimize_vectors, capped_distance
+from MDAnalysis.lib.distances import capped_distance
 
 
 def get_cum_ave(data):
+    """
+    Calculate the cumulative average of a data array.
+    
+    Parameters
+    ----------
+    data : np.ndarray
+        Array of data points.
+    
+    Returns
+    -------
+    np.ndarray
+        Array of cumulative averages.
+    """
     cum_sum = data.cumsum()
     cum_ave = cum_sum / (np.arange(len(data)) + 1)
     return cum_ave
@@ -71,48 +84,6 @@ def identify_water_molecules(
     return water_dict
 
 
-def get_dipoles(
-    h_positions: np.ndarray,
-    o_positions: np.ndarray,
-    water_dict: Dict[int, List[int]],
-    box: np.ndarray,
-    mic: bool = True,
-) -> np.ndarray:
-    """
-    Calculate dipole moments for water molecules.
-
-    Parameters
-    ----------
-    h_positions : np.ndarray
-        Positions of hydrogen atoms.
-    o_positions : np.ndarray
-        Positions of oxygen atoms.
-    water_dict : Dict[int, List[int]]
-        Dictionary mapping oxygen atom indices to two bonded hydrogen atom indices.
-    box : np.ndarray
-        Simulation cell defining periodic boundaries.
-
-    Returns
-    -------
-    np.ndarray
-        Array of dipole vectors for each oxygen atom. Entries are NaN for non-water oxygen atoms.
-    """
-    o_indices = np.array([k for k in water_dict.keys()])
-    h1_indices = np.array([v[0] for v in water_dict.values()])
-    h2_indices = np.array([v[1] for v in water_dict.values()])
-
-    oh1_vectors = h_positions[h1_indices] - o_positions
-    oh2_vectors = h_positions[h2_indices] - o_positions
-
-    if mic:
-        oh1_vectors = minimize_vectors(oh1_vectors, box)
-        oh2_vectors = minimize_vectors(oh2_vectors, box)
-
-    dipoles = np.ones(o_positions.shape) * np.nan
-    dipoles[o_indices, :] = oh1_vectors + oh2_vectors
-    return dipoles
-
-
 def mic_1d(x: np.ndarray, box_length: float, ref: float = 0.0) -> np.ndarray:
     """
     Apply the minimum image convention to a 1D coordinate in a periodic cell.
@@ -132,6 +103,6 @@ def mic_1d(x: np.ndarray, box_length: float, ref: float = 0.0) -> np.ndarray:
         Wrapped coordinates within the first principal cell centered around
         the reference coordinate.
     """
-    _temp = x - ref
-    _temp = _temp - np.round(_temp / box_length) * box_length
-    return _temp + ref
+    _x = x - ref
+    _x = _x - np.round(_x / box_length) * box_length
+    return _x + ref
