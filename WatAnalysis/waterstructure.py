@@ -236,6 +236,9 @@ class WaterStructure(AnalysisBase):
         only_valid_dipoles : bool, optional
             If True, only consider valid water molecules (O with 2 H) for the
             density calculation. Default is False.
+        sym : bool, optional
+            If True, the density profile is symmetrized about the center of the
+            simulation box. Default is False.
 
         Returns
         -------
@@ -282,6 +285,12 @@ class WaterStructure(AnalysisBase):
         by calculating the mean positions along the z-axis and creating
         a histogram of the dipole orientations.
 
+        Parameters
+        ----------
+        sym : bool, optional
+            If True, the density profile is symmetrized about the center of the
+            simulation box. Default is False.
+
         Returns
         -------
         z : ndarray
@@ -303,28 +312,60 @@ class WaterStructure(AnalysisBase):
         )
 
         z = utils.bin_edges_to_grid(bin_edges)
-        rho_cos_theta = counts / self.n_frames / self.cross_area
-        # n_water = counts / self.n_frames
-        # grid_volume = np.diff(bin_edges) * self.cross_area
-        # rho_cos_theta = calc_water_density(n_water, grid_volume)
+        n_water = counts / self.n_frames
+        grid_volume = np.diff(bin_edges) * self.cross_area
+        rho_cos_theta = calc_water_density(n_water, grid_volume)
 
         if sym:
             rho_cos_theta = (rho_cos_theta - rho_cos_theta[::-1]) / 2
         return z, rho_cos_theta
 
-    def costheta_profile(self, sym: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+    def calc_costheta_profile(self, sym: bool = False) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Calculate the cosine theta profile.
-        This method computes the cosine of the angle theta profile by dividing
-        the orientation profile by the density profile of valid dipoles.
-        Returns:
-            tuple: A tuple containing:
-                - z (array-like): The z-coordinates.
-                - rho_cos_theta (array-like): The cosine theta profile.
+        Calculate the average cosine theta profile.
+
+        Parameters
+        ----------
+        sym : bool, optional
+            If True, the density profile is symmetrized about the center of the
+            simulation box. Default is False.
+
+        Returns
+        -------
+        z : ndarray
+            The grid points along the z-axis.
+        avg_cos_theta : ndarray
+            The cosine theta profile.
         """
-        z, rho = self.calc_density_profile(only_valid_dipoles=True, sym=sym)
-        _, rho_cos_theta = self.calc_orientation_profile(sym=sym)
-        return z, rho_cos_theta / rho
+        z1_mean = np.mean(self.z1)
+        z2_mean = np.mean(self.z2)
+        z_coords = self.z_water.flatten()
+        cos_theta = self.cos_theta.flatten()
+
+        bin_edges = np.linspace(
+            z1_mean, z2_mean, int((z2_mean - z1_mean) / self.dz) + 1
+        )
+        z = utils.bin_edges_to_grid(bin_edges)
+
+        # Digitize z-coordinates to find which bin each value belongs to
+        bin_indices = np.digitize(z_coords, bin_edges)
+
+        # Compute average cos(theta) in each bin
+        avg_cos_theta = np.array(
+            [
+                (
+                    cos_theta[bin_indices == i].mean()
+                    if np.any(bin_indices == i)
+                    else np.nan
+                )
+                for i in range(1, len(bin_edges))
+            ]
+        )
+
+        if sym:
+            avg_cos_theta = (avg_cos_theta - avg_cos_theta[::-1]) / 2
+
+        return z, avg_cos_theta
 
     def calc_sel_water(
         self, interval: Tuple[float, float], n_bins: int = 90
