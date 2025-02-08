@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
-from typing import List, Dict
+from typing import Dict, List
+
 import numpy as np
 from MDAnalysis.lib.distances import distance_array
+from scipy import constants
 
 
 def get_cum_ave(data):
@@ -40,6 +42,44 @@ def bin_edges_to_grid(bin_edges: np.ndarray):
     return bin_edges[:-1] + np.diff(bin_edges) / 2
 
 
+def calc_density(n, v, mol_mass: float):
+    """
+    calculate density (g/cm^3) from the number of particles
+
+    Parameters
+    ----------
+    n : int or array
+        number of particles
+    v : float or array
+        volume
+    mol_mass : float
+        mole mass in g/mol
+    """
+    rho = (n / constants.Avogadro * mol_mass) / (
+        v * (constants.angstrom / constants.centi) ** 3
+    )
+    return rho
+
+
+def calc_water_density(n, v):
+    """
+    Calculate the density of water from the number of particles and volume.
+
+    Parameters
+    ----------
+    n : int or array
+        number of particles
+    v : float or array
+        volume
+
+    Returns
+    -------
+    float or array
+        Density of water in g/cm^3
+    """
+    return calc_density(n, v, 18.015)
+
+
 def identify_water_molecules(
     h_positions: np.ndarray,
     o_positions: np.ndarray,
@@ -56,7 +96,7 @@ def identify_water_molecules(
         Positions of hydrogen atoms.
     o_positions : np.ndarray
         Positions of oxygen atoms.
-    box: np.ndarray
+    box : np.ndarray
         Simulation cell defining periodic boundaries.
     oh_cutoff : float
         Maximum O-H distance to consider as a bond.

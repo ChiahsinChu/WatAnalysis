@@ -1,11 +1,10 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 # import numpy as np
-from MDAnalysis.analysis.waterdynamics import (
-    # MeanSquareDisplacement,
+from MDAnalysis.analysis.msd import EinsteinMSD
+from MDAnalysis.analysis.waterdynamics import (  # MeanSquareDisplacement,
     SurvivalProbability,
     WaterOrientationalRelaxation,
 )
-from MDAnalysis.analysis.msd import EinsteinMSD
 
 from WatAnalysis.preprocess import make_selection
 

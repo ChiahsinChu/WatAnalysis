@@ -12,7 +12,7 @@ Install it before installing WatAnalysis:
 
 ```bash
 git clone https://github.com/ChiahsinChu/mdanalysis.git -b devel-relprop
-cd mdanalysis 
+cd mdanalysis
 pip install --upgrade package/
 cd ..
 ```

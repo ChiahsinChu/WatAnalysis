@@ -1,18 +1,15 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
-from typing import List, Tuple, Union, Dict
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
-from ase.geometry import cellpar_to_cell
 from ase.cell import Cell
+from ase.geometry import cellpar_to_cell
 from MDAnalysis.analysis.base import AnalysisBase
-
-# from MDAnalysis.analysis.waterdynamics import AngularDistribution
 from MDAnalysis.analysis.hydrogenbonds.hbond_analysis import HydrogenBondAnalysis
 from MDAnalysis.core.groups import AtomGroup
 from MDAnalysis.core.universe import Universe
 from MDAnalysis.exceptions import NoDataError
 from MDAnalysis.lib.distances import capped_distance, minimize_vectors
-from toolbox.utils.utils import calc_water_density
 
 from . import utils
 from .preprocess import make_selection, make_selection_two
@@ -271,7 +268,7 @@ class WaterStructure(AnalysisBase):
         # Density values
         n_water = counts / self.n_frames
         grid_volume = np.diff(bin_edges) * self.cross_area
-        rho = calc_water_density(n_water, grid_volume)
+        rho = utils.calc_water_density(n_water, grid_volume)
         if sym:
             rho = (rho[::-1] + rho) / 2
         return z, rho
@@ -314,7 +311,7 @@ class WaterStructure(AnalysisBase):
         z = utils.bin_edges_to_grid(bin_edges)
         n_water = counts / self.n_frames
         grid_volume = np.diff(bin_edges) * self.cross_area
-        rho_cos_theta = calc_water_density(n_water, grid_volume)
+        rho_cos_theta = utils.calc_water_density(n_water, grid_volume)
 
         if sym:
             rho_cos_theta = (rho_cos_theta - rho_cos_theta[::-1]) / 2
@@ -848,7 +845,7 @@ class DeprecatedWaterStructure(AnalysisBase):
         n_water = out[0] / self.n_frames
         grid_volume = np.diff(out[1]) * self.cross_area
         grid = out[1][:-1] + np.diff(out[1]) / 2
-        rho = calc_water_density(n_water, grid_volume)
+        rho = utils.calc_water_density(n_water, grid_volume)
         x = grid - self.z_lo
         if self.symm:
             y = (np.flip(rho) + rho) / 2
