@@ -150,3 +150,12 @@ def mic_1d(x: np.ndarray, box_length: float, ref: float = 0.0) -> np.ndarray:
     _x = x - ref
     _x = _x - np.round(_x / box_length) * box_length
     return _x + ref
+
+
+def exponential_moving_average(data, alpha=0.1):
+    """Exponential moving average"""
+    ema = np.zeros_like(data)
+    ema[0] = data[0]
+    for i in range(1, len(data)):
+        ema[i] = alpha * data[i] + (1 - alpha) * ema[i - 1]
+    return ema
