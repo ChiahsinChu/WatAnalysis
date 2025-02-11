@@ -128,6 +128,44 @@ def identify_water_molecules(
     return water_dict
 
 
+def voronoi_volume(
+        h_positions: np.ndarray,
+        o_positions: np.ndarray,
+        box: np.ndarray,
+    ):
+    all_distances = np.zeros((h_positions.shape[0], o_positions.shape[0]))
+    distance_array(h_positions, o_positions, result=all_distances, box=box)
+    oxygen_ids = np.argmin(all_distances, axis=1)
+    np.unique(oxygen_ids, return_index=True, return_counts=True)
+    
+    # Loop through each frame in the trajectory
+    for frame in atoms:
+        # Get the positions of atoms
+        positions = frame.get_positions()
+        
+        # Get the atomic numbers (assuming H=1, O=8)
+        atomic_numbers = frame.get_atomic_numbers()
+
+        # Separate the positions of O and H atoms
+        o_positions = positions[atomic_numbers == 8]
+        h_positions = positions[atomic_numbers == 1]
+
+        # Create a Voronoi diagram for the positions of O and H atoms
+        vor = Voronoi(o_positions)
+
+        # Assign each H atom to the closest O atom based on Voronoi cells
+        h_to_o_assignment = []
+        for h_pos in h_positions:
+            # Find the nearest O atom in the Voronoi diagram
+            nearest_o_index = np.argmin(np.linalg.norm(o_positions - h_pos, axis=1))
+            h_to_o_assignment.append(nearest_o_index)
+
+        # Print the assignments for the current frame
+        print(f"Frame {frame.get_number()}:")
+        for h_idx, o_idx in enumerate(h_to_o_assignment):
+            print(f"  H atom {h_idx+1} is assigned to O atom {o_idx+1}")
+        print("\n")
+
 def mic_1d(x: np.ndarray, box_length: float, ref: float = 0.0) -> np.ndarray:
     """
     Apply the minimum image convention to a 1D coordinate in a periodic cell.
