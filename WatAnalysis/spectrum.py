@@ -1,13 +1,12 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
-from typing import List, Union, Optional
+from typing import List, Optional, Union
 
 import numpy as np
+from MDAnalysis import Universe
 from scipy import signal
 
-from MDAnalysis import Universe
-
-from .multitrajbase import MultiTrajsAnalysisBase
 from . import utils
+from .multitrajbase import MultiTrajsAnalysisBase
 
 
 def calc_full_vacf(velocities: np.ndarray) -> np.ndarray:
@@ -24,10 +23,23 @@ def calc_full_vacf(velocities: np.ndarray) -> np.ndarray:
     full_vacf: np.ndarray
         The full normalised VACF including both positive and negative lags.
     """
-    full_vacf_x = [signal.correlate(velocities[:, ii, 0], velocities[:, ii, 0]) for ii in range(velocities.shape[1])]
-    full_vacf_y = [signal.correlate(velocities[:, ii, 1], velocities[:, ii, 1]) for ii in range(velocities.shape[1])]
-    full_vacf_z = [signal.correlate(velocities[:, ii, 2], velocities[:, ii, 2]) for ii in range(velocities.shape[1])]
-    full_vacf = np.mean(full_vacf_x, axis=0) + np.mean(full_vacf_y, axis=0) + np.mean(full_vacf_z, axis=0)
+    full_vacf_x = [
+        signal.correlate(velocities[:, ii, 0], velocities[:, ii, 0])
+        for ii in range(velocities.shape[1])
+    ]
+    full_vacf_y = [
+        signal.correlate(velocities[:, ii, 1], velocities[:, ii, 1])
+        for ii in range(velocities.shape[1])
+    ]
+    full_vacf_z = [
+        signal.correlate(velocities[:, ii, 2], velocities[:, ii, 2])
+        for ii in range(velocities.shape[1])
+    ]
+    full_vacf = (
+        np.mean(full_vacf_x, axis=0)
+        + np.mean(full_vacf_y, axis=0)
+        + np.mean(full_vacf_z, axis=0)
+    )
     del full_vacf_x, full_vacf_y, full_vacf_z
     # Normalize ACF
     full_vacf = full_vacf / full_vacf.max()
@@ -78,7 +90,7 @@ class InterfaceVelocityACF(MultiTrajsAnalysisBase):
         self.max_tau = max_tau
         self.d_tau = d_tau
         self.tau_list = np.arange(0, max_tau + d_tau, d_tau, dtype=int)
-        
+
         if interval is not None:
             assert len(interval) == 2
             assert interval[1] > interval[0]
@@ -106,7 +118,9 @@ class InterfaceVelocityACF(MultiTrajsAnalysisBase):
     def _prepare(self):
         self._vacf = np.full([len(self.tau_list), self.n_frames], np.nan, np.float64)
 
-        self._oxygen_mask = np.zeros([self.max_tau + 1, len(self.oxygen_ag)], dtype=bool)
+        self._oxygen_mask = np.zeros(
+            [self.max_tau + 1, len(self.oxygen_ag)], dtype=bool
+        )
         self._hydrogen_velocities = np.zeros(
             [self.max_tau + 1, len(self.hydrogen_vel_ag), 3]
         )
@@ -165,9 +179,16 @@ class InterfaceVelocityACF(MultiTrajsAnalysisBase):
                     sel_hydrogen_ids.append(self.water_dict[ii_oxygen])
                 sel_hydrogen_ids = np.concatenate(sel_hydrogen_ids)
                 self._vacf[ii, self._frame_index] = np.mean(
-                    np.sum(velocities_hydrogen[sel_hydrogen_ids]
-                    * self._hydrogen_velocities[end_idx][sel_hydrogen_ids], axis=-1)
+                    np.sum(
+                        velocities_hydrogen[sel_hydrogen_ids]
+                        * self._hydrogen_velocities[end_idx][sel_hydrogen_ids],
+                        axis=-1,
+                    )
                 )
 
     def _conclude(self):
-        self.results.vacf = [np.mean(vacf[~np.isnan(vacf)]) for vacf in self._vacf]
+        vacf = [np.mean(vacf[~np.isnan(vacf)]) for vacf in self._vacf]
+        self.results.vacf = np.array(vacf) / vacf[0]
+        self.results.full_vacf = np.concatenate(
+            [self.results.vacf[::-1][:-1], self.results.vacf]
+        )
