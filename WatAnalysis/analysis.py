@@ -315,8 +315,9 @@ class WaterAnalysis(AnalysisBase):
 
         Returns
         -------
-        int
-            The number of water molecules in the specified region.
+        np.ndarray
+            The number of water molecules in the specified region over time for all analyzed
+            frames.
         """
 
         if only_valid_dipoles:

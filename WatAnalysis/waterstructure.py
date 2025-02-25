@@ -279,8 +279,6 @@ def calc_angular_distribution(
         Boolean array masking the values of cos_theta in the relevant region near the upper surface
     cos_theta : np.ndarray
         Array of cosine of the angles between water molecules and the surface normal.
-    interval : Tuple[float, float]
-        Interval defining the region of interest along the z-axis.
     n_bins : int, optional
         Number of bins for the histogram (default is 90).
 
