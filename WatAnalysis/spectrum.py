@@ -24,12 +24,11 @@ def calc_full_vacf(velocities: np.ndarray) -> np.ndarray:
     full_vacf: np.ndarray
         The full normalised VACF including both positive and negative lags.
     """
-    full_vacf_x = signal.correlate(velocities[:, :, 0], velocities[:, :, 0])
-    full_vacf_y = signal.correlate(velocities[:, :, 1], velocities[:, :, 1])
-    full_vacf_z = signal.correlate(velocities[:, :, 2], velocities[:, :, 2])
-    full_vacf = full_vacf_x + full_vacf_y + full_vacf_z
+    full_vacf_x = [signal.correlate(velocities[:, ii, 0], velocities[:, ii, 0]) for ii in range(velocities.shape[1])]
+    full_vacf_y = [signal.correlate(velocities[:, ii, 1], velocities[:, ii, 1]) for ii in range(velocities.shape[1])]
+    full_vacf_z = [signal.correlate(velocities[:, ii, 2], velocities[:, ii, 2]) for ii in range(velocities.shape[1])]
+    full_vacf = np.mean(full_vacf_x, axis=0) + np.mean(full_vacf_y, axis=0) + np.mean(full_vacf_z, axis=0)
     del full_vacf_x, full_vacf_y, full_vacf_z
-    full_vacf = full_vacf.mean(axis=1)
     # Normalize ACF
     full_vacf = full_vacf / full_vacf.max()
     return full_vacf
