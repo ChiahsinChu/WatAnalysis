@@ -1,5 +1,10 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
-# import numpy as np
+"""
+Functionality for computing dynamical quantities from molecular dynamics
+trajectories of water at interfaces
+"""
+
+import numpy as np
 from MDAnalysis.analysis.msd import EinsteinMSD
 from MDAnalysis.analysis.waterdynamics import (  # MeanSquareDisplacement,
     SurvivalProbability,
@@ -261,3 +266,65 @@ class MSD(EinsteinMSD):
         select = make_selection(**kwargs)
         # print("selection: ", select)
         super().__init__(universe, select, msd_type, fft, verbose=verbose)
+
+
+def calc_vector_autocorrelation(
+    max_tau: int,
+    delta_tau: int,
+    step: int,
+    vectors: np.ndarray,
+    mask: np.ndarray,
+):
+    """
+    Calculate the autocorrelation function for a vector quantity over time.
+
+    Parameters
+    ----------
+    max_tau : int
+        Maximum lag time to calculate ACF for
+    delta_tau : int
+        Time interval between lag times (points on the C(tau) vs. tau curve)
+    step : int
+        Step size for time origins. If equal to max_tau, there is no overlap between
+        time windows considered in the calculation (so more uncorrelated).
+    vectors : numpy.ndarray
+        Array of vectors with shape (num_timesteps, num_particles, 3)
+    mask : numpy.ndarray
+        Boolean mask array indicating which particles to include, shape
+        (num_timesteps, num_particles)
+
+    Returns
+    -------
+    tau : numpy.ndarray
+        Array of lag times
+    acf : numpy.ndarray
+        Normalized autocorrelation function values for each lag time
+    """
+    tau = np.arange(start=0, stop=max_tau, step=delta_tau)
+    acf = np.zeros(tau.shape)
+    mask = np.expand_dims(mask, axis=2)
+
+    # Calculate ACF for each lag time
+    for i, t in enumerate(tau):
+        n_selected_vectors = None
+        if t == 0:
+            # For t=0, just calculate the dot product with itself
+            dot_products = np.sum(
+                vectors * vectors * mask, axis=2
+            )  # Shape: (num_timesteps, num_molecules)
+            n_selected_vectors = np.count_nonzero(mask)
+        else:
+            # For t > 0, calculate the dot products between shifted arrays
+            _vectors_0 = vectors[:-t:step] * mask[:-t:step]  # dipole(t=0)
+            _vectors_t = vectors[t::step] * mask[t::step]  # dipole(t=tau)
+            dot_products = np.sum(
+                _vectors_0 * _vectors_t, axis=2
+            )  # Shape: ((num_timesteps - t)//step, num_molecules)
+            n_selected_vectors = np.count_nonzero(mask[:-t:step] * mask[t::step])
+
+        # Average over molecules and time origins
+        acf[i] = np.sum(dot_products) / n_selected_vectors
+
+    # Normalize the ACF
+    acf /= acf[0]  # Normalize by the zero-lag value
+    return tau, acf
