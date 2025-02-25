@@ -267,7 +267,7 @@ def calc_angular_distribution(
     mask_hi: np.ndarray,
     cos_theta: np.ndarray,
     n_bins: int = 90,
-) -> Tuple[float, list[np.ndarray]]:
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Calculate the angular distribution of water molecules between two surfaces.
 

@@ -335,7 +335,7 @@ class WaterAnalysis(AnalysisBase):
 
     def angular_distribution(
         self, interval: Tuple[float, float], n_bins: int = 90
-    ) -> Tuple[float, list[np.ndarray]]:
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Calculate distribution of dipole angles for water in a selected
         region relative to the surfaces.
