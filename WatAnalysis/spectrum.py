@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 import numpy as np
 from scipy import signal
 
@@ -8,7 +9,7 @@ def calc_full_vacf(velocities: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    velocities: np.ndarray
+    velocities : np.ndarray
         The velocities of the atoms in the system.
 
     Returns
@@ -33,9 +34,9 @@ def calc_power_spectrum(full_vacf, ts):
 
     Parameters
     ----------
-    full_vacf: np.ndarray
+    full_vacf : np.ndarray
         The full normalised VACF including both positive and negative lags.
-    ts: float
+    ts : float
         The time step of the simulation.
 
     Returns
@@ -48,4 +49,3 @@ def calc_power_spectrum(full_vacf, ts):
     power_spectrum = np.abs(np.fft.fft(full_vacf))
     freqs = np.fft.fftfreq(full_vacf.size, ts)
     return freqs, power_spectrum
-
