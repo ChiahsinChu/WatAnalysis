@@ -1,12 +1,12 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+import unittest
 from typing import List
-
-from MDAnalysis import Universe
 
 import numpy as np
 from ase import io
-from WatAnalysis.multitrajbase import MultiTrajsAnalysisBase
+from MDAnalysis import Universe
 
-import unittest
+from WatAnalysis.multitrajbase import MultiTrajsAnalysisBase
 
 
 class ToyMTClass(MultiTrajsAnalysisBase):

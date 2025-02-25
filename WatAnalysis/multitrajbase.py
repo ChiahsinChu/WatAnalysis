@@ -1,12 +1,11 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
-from typing import List
-import numpy as np
-
-from MDAnalysis.analysis.base import AnalysisBase
-from MDAnalysis.lib.log import ProgressBar
-from MDAnalysis.coordinates.base import ReaderBase
-
 import logging
+from typing import List
+
+import numpy as np
+from MDAnalysis.analysis.base import AnalysisBase
+from MDAnalysis.coordinates.base import ReaderBase
+from MDAnalysis.lib.log import ProgressBar
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +64,7 @@ class MultiTrajsAnalysisBase(AnalysisBase):
         frames=None,
         verbose=None,
         *,
-        progressbar_kwargs={}
+        progressbar_kwargs={},
     ):
         logger.info("Choosing frames to analyze")
         # if verbose unchanged, use class default
@@ -86,7 +85,7 @@ class MultiTrajsAnalysisBase(AnalysisBase):
             ProgressBar(_sliced_trajectory, verbose=verbose, **progressbar_kwargs)
             for _sliced_trajectory in self._sliced_trajectories
         ]
-        
+
         for i, all_ts in enumerate(zip(*iter_objects)):
             self._frame_index = i
             self._all_ts = all_ts
