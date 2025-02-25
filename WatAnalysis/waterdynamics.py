@@ -5,10 +5,7 @@ trajectories of water at interfaces
 """
 import numpy as np
 from MDAnalysis.analysis.msd import EinsteinMSD
-from MDAnalysis.analysis.waterdynamics import (  # MeanSquareDisplacement,
-    SurvivalProbability,
-    WaterOrientationalRelaxation,
-)
+from waterdynamics import SurvivalProbability, WaterOrientationalRelaxation
 
 from WatAnalysis.preprocess import make_selection
 
