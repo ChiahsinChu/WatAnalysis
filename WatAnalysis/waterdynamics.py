@@ -79,17 +79,21 @@ def calc_survival_probability(
     mask: np.ndarray,
 ):
     """
-    Calculate the survival probability.
+    Calculate the probability that particles remain within a specified region
+    over a given time interval.
 
     Parameters
     ----------
     max_tau : int
-        Maximum lag time to calculate ACF for
+        The maximum time delay for which the survival probability is calculated.
     delta_tau : int
-        Time interval between lag times (points on the C(tau) vs. tau curve)
+        The time delay interval for calculating the survival probability (spacing
+        between points on the survival probability vs. tau curve).
     step : int
-        Step size for time origins. If equal to max_tau, there is no overlap between
-        time windows considered in the calculation (so more uncorrelated).
+        The step size between time origins that are taken into account.
+        By increasing the step the analysis can be sped up at a loss of statistics.
+        If equal to max_tau, there is no overlap between time windows considered in the
+        calculation (so more uncorrelated). Defaults to 1.
     mask : numpy.ndarray
         Boolean mask array indicating which molecules are in the region of interest for
         all time steps, shape (num_timesteps, num_molecules)

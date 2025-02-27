@@ -90,7 +90,6 @@ class WaterAnalysis(AnalysisBase):
         )
         self.min_vector = kwargs.get("min_vector", True)
         self.dz = kwargs.get("dz", 0.1)
-        self.save_velocities = kwargs.get("save_velocities", False)
 
         self.water_dict = utils.identify_water_molecules(
             self.hydrogen_ag.positions,
@@ -375,7 +374,27 @@ class WaterAnalysis(AnalysisBase):
         step: int = 1,
     ):
         """
-        Calculate the water dipole autocorrelation
+        Calculate the autocorrelation function for water molecule dipole vectors.
+
+        Parameters
+        ----------
+        max_tau : int
+            Maximum lag time to calculate the autocorrelation function C(tau) for
+        delta_tau : int
+            Time interval between lag times (points on the C(tau) vs. tau curve)
+        interval : Tuple[float, float]
+            The region of interest defined by a tuple of two floats representing
+            the lower and upper bounds relative to the surface, in Angstrom.
+        step : int
+            Step size for time origins. If equal to max_tau, there is no overlap between
+            time windows considered in the calculation (so more uncorrelated).
+
+        Returns
+        -------
+        tau : numpy.ndarray
+            Array of lag times
+        acf : numpy.ndarray
+            Normalized dipole autocorrelation function values for each lag time
         """
         valid = ~np.isnan(self.results.cos_theta)
         mask_lo, mask_hi = utils.get_region_masks(
@@ -395,9 +414,35 @@ class WaterAnalysis(AnalysisBase):
         delta_tau: int,
         interval: Tuple[float, float],
         step: int = 1,
-    ):
+    ) -> np.ndarray:
         """
-        Calculate the water survival probability
+        Calculate the water survival probability.
+
+        This method calculates the probability that water molecules will remain within a
+        specified region over a given time interval.
+
+        Parameters
+        ----------
+        max_tau : int
+            The maximum time delay for which the survival probability is calculated.
+        delta_tau : int
+            The time delay interval for calculating the survival probability (spacing
+            between points on the survival probability vs. tau curve).
+        interval : Tuple[float, float]
+            The region of interest defined by a tuple of two floats representing
+            the lower and upper bounds relative to the surface, in Angstrom.
+        step : int, optional
+            The step size between time origins that are taken into account.
+            By increasing the step the analysis can be sped up at a loss of statistics.
+            If equal to max_tau, there is no overlap between time windows considered in the
+            calculation (so more uncorrelated). Defaults to 1.
+
+        Returns
+        -------
+        tau : numpy.ndarray
+            Array of lag times
+        acf : numpy.ndarray
+            Survival probability values for each lag time
         """
         mask_lo, mask_hi = utils.get_region_masks(
             self.results.z_water, self.results.z1, self.results.z2, interval
