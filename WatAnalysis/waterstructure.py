@@ -779,7 +779,7 @@ class DeprecatedWaterStructure(AnalysisBase):
         return n_water, [grid, out[0]]
 
 
-class AlkaliStructure(WaterStructure):
+class AlkaliStructure(AnalysisBase):
     def __init__(
         self,
         universe: Universe,
@@ -788,7 +788,7 @@ class AlkaliStructure(WaterStructure):
     ):
         self.universe = universe
         trajectory = self.universe.trajectory
-        AnalysisBase.__init__(self, trajectory, verbose=kwargs.get("verbose", False))
+        super().__init__(trajectory, verbose=kwargs.get("verbose", False))
         self.n_frames = len(trajectory)
 
         self.axis = kwargs.get("axis", 2)
@@ -800,24 +800,23 @@ class AlkaliStructure(WaterStructure):
         self.min_vector = kwargs.get("min_vector", True)
         self.dz = kwargs.get("dz", 0.1)
 
-        self.z_water = None
-        self.cos_theta_water = None
+        self.z_oxygen = None
+        self.cos_theta_OH = None
+        self.cns = None
+
         self.z1 = None
         self.z2 = None
         self.cross_area = None
 
-        self.z_OH = None
-        self.cos_theta_OH = None
-
     def _prepare(self):
-        super()._prepare()
-        n_oh = 2 * self.oxygen_ag.n_atoms - self.hydrogen_ag.n_atoms
-        n_h2o = self.oxygen_ag.n_atoms - n_oh
+        # Initialize empty arrays
+        self.z_oxygen = np.zeros((self.n_frames, self.oxygen_ag.n_atoms))
+        self.cos_theta_OH = np.zeros((self.n_frames, self.oxygen_ag.n_atoms))
+        self.cns = np.zeros((self.n_frames, self.oxygen_ag.n_atoms), dtype=int)
 
-        self.z_water = np.zeros((self.n_frames, n_h2o))
-        self.cos_theta_water = np.zeros((self.n_frames, n_h2o))
-        self.z_OH = np.zeros((self.n_frames, n_oh))
-        self.cos_theta_OH = np.zeros((self.n_frames, n_oh))
+        self.z1 = np.zeros(self.n_frames)
+        self.z2 = np.zeros(self.n_frames)
+        self.cross_area = 0.0
 
     def _single_frame(self):
         ts_box = self._ts.dimensions
@@ -847,33 +846,41 @@ class AlkaliStructure(WaterStructure):
         H_to_O_mapping = np.argmin(all_distances, axis=1)
         oxygen_ids, cns = np.unique(H_to_O_mapping, return_counts=True)
 
-        water_mask = cns == 2
-        OH_mask = cns == 1
-        # Save oxygen locations for water density analysis
         np.copyto(
-            self.z_water[self._frame_index],
-            coords_oxygen[oxygen_ids[water_mask], self.axis],
+            self.z_oxygen[self._frame_index],
+            np.pad(
+                coords_oxygen[oxygen_ids, self.axis],
+                (0, len(coords_oxygen) - len(oxygen_ids)),
+                mode="constant",
+                constant_values=np.nan,
+            ),
         )
         np.copyto(
-            self.z_OH[self._frame_index], coords_oxygen[oxygen_ids[OH_mask], self.axis]
+            self.cns[self._frame_index],
+            np.pad(
+                cns,
+                (0, len(coords_oxygen) - len(oxygen_ids)),
+                mode="constant",
+                constant_values=-1,
+            ),
         )
 
         OH_vectors = minimize_vectors(
             coords_hydrogen - coords_oxygen[H_to_O_mapping], box=ts_box
         )
-        # water dipole
-        dipole = np.zeros((np.count_nonzero(water_mask), 3))
-        for count, ii in enumerate(oxygen_ids[water_mask]):
-            dipole[count] = OH_vectors[np.where(H_to_O_mapping == ii)[0]].mean(axis=0)
-        cos_theta = (dipole[:, self.axis]) / np.linalg.norm(dipole, axis=-1)
-        np.copyto(self.cos_theta_water[self._frame_index], cos_theta)
-
-        # OH dipole
-        dipole = np.zeros((np.count_nonzero(OH_mask), 3))
-        for count, ii in enumerate(oxygen_ids[OH_mask]):
-            dipole[count] = OH_vectors[np.where(H_to_O_mapping == ii)[0]].mean(axis=0)
-        cos_theta = (dipole[:, self.axis]) / np.linalg.norm(dipole, axis=-1)
-        np.copyto(self.cos_theta_OH[self._frame_index], cos_theta)
+        dipoles = np.zeros((len(oxygen_ids), 3))
+        for count, ii in enumerate(oxygen_ids):
+            dipoles[count] = OH_vectors[np.where(H_to_O_mapping == ii)[0]].mean(axis=0)
+        cos_theta = (dipoles[:, self.axis]) / np.linalg.norm(dipoles, axis=-1)
+        np.copyto(
+            self.cos_theta_OH[self._frame_index],
+            np.pad(
+                cos_theta,
+                (0, len(coords_oxygen) - len(oxygen_ids)),
+                mode="constant",
+                constant_values=np.nan,
+            ),
+        )
 
     def _conclude(self):
         # Average surface area
@@ -891,13 +898,8 @@ class AlkaliStructure(WaterStructure):
         )
         # Step 3: Calculate z_water relative to z_1, ensuring that all water positions are
         # within one cell length positive of z1.
-        z_water = utils.mic_1d(
-            self.z_water - self.z1[:, np.newaxis],
-            box_length=box_length,
-            ref=box_length / 2,
-        )
-        z_OH = utils.mic_1d(
-            self.z_OH - self.z1[:, np.newaxis],
+        z_oxygen = utils.mic_1d(
+            self.z_oxygen - self.z1[:, np.newaxis],
             box_length=box_length,
             ref=box_length / 2,
         )
@@ -905,50 +907,24 @@ class AlkaliStructure(WaterStructure):
         # Update attributes to the final relative coordinates
         self.z1 = z1
         self.z2 = z2
-        self.z_water = z_water
-        self.z_OH = z_OH
+        self.z_oxygen = z_oxygen
 
-        self.results.rho_water = self.calc_density_profile()
-        self.results.geo_dipole_water = self.calc_orientation_profile()
-        self.results.rho_OH = self.calc_OH_density_profile()
-        self.results.geo_dipole_OH = self.calc_OH_orientation_profile()
+        self.results.rho_water = self.calc_density_profile(cn=2)
+        self.results.geo_dipole_water = self.calc_orientation_profile(cn=2)
+        self.results.rho_OH = self.calc_density_profile(cn=1)
+        self.results.geo_dipole_OH = self.calc_orientation_profile(cn=1)
 
-    def calc_OH_density_profile(
-        self, only_valid_dipoles: bool = False, sym: bool = False
+    def calc_density_profile(
+        self, cn: int = 2, sym: bool = True
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Calculate the density profile of water molecules using a histogram.
+        mol_mass = 15.999 + cn * 1.008
 
-        Parameters
-        ----------
-        only_valid_dipoles : bool, optional
-            If True, only consider valid water molecules (O with 2 H) for the
-            density calculation. Default is False.
-        sym : bool, optional
-            If True, the density profile is symmetrized about the center of the
-            simulation box. Default is False.
-
-        Returns
-        -------
-        z : ndarray
-            The spatial coordinates corresponding to the bin centers.
-        rho : ndarray
-            The density values of water molecules.
-        """
         z1_mean = np.mean(self.z1)
         z2_mean = np.mean(self.z2)
 
-        # Check valid water molecules (O with 2 H)
-        # In this way, the density rho corresponds to the density in the
-        # orientation profile rho * <cos theta>
-        if only_valid_dipoles:
-            valid = ~np.isnan(self.cos_theta_OH.flatten())
-        else:
-            valid = np.ones(self.z_OH.flatten().size, dtype=bool)
-
-        # Make histogram
+        mask = self.cns == cn
         counts, bin_edges = np.histogram(
-            self.z_OH.flatten()[valid],
+            self.z_oxygen[mask],
             bins=int((z2_mean - z1_mean) / self.dz),
             range=(z1_mean, z2_mean),
         )
@@ -959,51 +935,82 @@ class AlkaliStructure(WaterStructure):
         # Density values
         n = counts / self.n_frames
         grid_volume = np.diff(bin_edges) * self.cross_area
-        rho = utils.calc_density(n, grid_volume, 17.0)
+        rho = utils.calc_density(n, grid_volume, mol_mass)
         if sym:
             rho = (rho[::-1] + rho) / 2
         return z, rho
 
-    def calc_OH_orientation_profile(
-        self, sym: bool = False
+    def calc_orientation_profile(
+        self, cn: int = 2, sym: bool = True
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Calculate the orientation profile of water molecules.
-        This method computes the orientation profile of water molecules
-        by calculating the mean positions along the z-axis and creating
-        a histogram of the dipole orientations.
+        mol_mass = 15.999 + cn * 1.008
 
-        Parameters
-        ----------
-        sym : bool, optional
-            If True, the density profile is symmetrized about the center of the
-            simulation box. Default is False.
-
-        Returns
-        -------
-        z : ndarray
-            The grid points along the z-axis.
-        rho_cos_theta : ndarray
-            The orientation profile of water molecules.
-        """
         z1_mean = np.mean(self.z1)
         z2_mean = np.mean(self.z2)
 
-        # Check valid water molecules (O with 2 H)
-        valid = ~np.isnan(self.cos_theta_OH.flatten())
-
+        mask = self.cns == cn
         counts, bin_edges = np.histogram(
-            self.z_OH.flatten()[valid],
+            self.z_oxygen[mask],
             bins=int((z2_mean - z1_mean) / self.dz),
             range=(z1_mean, z2_mean),
-            weights=self.cos_theta_OH.flatten()[valid],
+            weights=self.cos_theta_OH[mask],
         )
 
         z = utils.bin_edges_to_grid(bin_edges)
         n = counts / self.n_frames
         grid_volume = np.diff(bin_edges) * self.cross_area
-        rho_cos_theta = utils.calc_density(n, grid_volume, 17.0)
+        rho_cos_theta = utils.calc_density(n, grid_volume, mol_mass)
 
         if sym:
             rho_cos_theta = (rho_cos_theta - rho_cos_theta[::-1]) / 2
         return z, rho_cos_theta
+
+    def calc_sel_species(
+        self, interval: Tuple[float, float], n_bins: int = 90, cn: int = 2
+    ) -> Tuple[float, list[np.ndarray]]:
+        """
+        Calculate properties of water in a selected region relative to the surfaces.
+
+        Parameters
+        ----------
+        interval : tuple of float
+            The interval range to select the region of interest.
+        n_bins : int, optional
+            The number of bins for the histogram (default is 90).
+
+        Returns
+        -------
+        n_water : float
+            The number of water molecules in the selected region.
+        histogram : list[ndarray]
+            A list [x, y] containing the grid of angles (x) and the
+            probability density of the angular distribution (y).
+        """
+        cn_mask = self.cns == cn
+
+        mask = (
+            (self.z_oxygen > (self.z1[:, np.newaxis] + interval[0]))
+            & (self.z_oxygen <= (self.z1[:, np.newaxis] + interval[1]))
+            & cn_mask
+        )
+
+        n_water = np.count_nonzero(mask, axis=1)
+        lower_surface_angles = np.arccos(self.cos_theta_OH[mask]) / np.pi * 180
+
+        mask = (
+            (self.z_oxygen < (self.z2[:, np.newaxis] - interval[0]))
+            & (self.z_oxygen >= (self.z2[:, np.newaxis] - interval[1]))
+            & cn_mask
+        )
+        upper_surface_angles = np.arccos(-self.cos_theta_OH[mask]) / np.pi * 180
+        n_water += np.count_nonzero(mask, axis=1)
+
+        combined_angles = np.concatenate([lower_surface_angles, upper_surface_angles])
+        angle_distribution, bin_edges = np.histogram(
+            combined_angles,
+            bins=n_bins,
+            range=(0.0, 180.0),
+            density=True,
+        )
+        grid = utils.bin_edges_to_grid(bin_edges)
+        return n_water, [grid, angle_distribution]
