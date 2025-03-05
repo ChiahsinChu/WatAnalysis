@@ -32,6 +32,27 @@ class PlanarInterfaceAnalysisBase(AnalysisBase):
         Additional keyword arguments for customization:
         - verbose : bool, optional.
             If True, enables verbose output.
+
+    Examples
+    --------
+    >>> import matplotlib.pyplot as plt
+    >>> from MDAnalysis import Universe
+    >>> from WatAnalysis.workflow import PlanarInterfaceAnalysisBase, DensityAnalysis
+    >>>
+    >>> # set up universe and surface indices...
+    >>>
+    >>> obj = PlanarInterfaceAnalysisBase(
+    ...     universe=universe,
+    ...     surf_ids=surf_ids,
+    ...     workflow=[
+    ...         DensityAnalysis(selection="name O", mol_mass=15.999, label="oxygen"),
+    ...         DensityAnalysis(selection="name H", mol_mass=1.008, label="hydrogen"),
+    ...     ],
+    ... )
+    >>> obj.run()
+    >>>
+    >>> plt.plot(obj.workflow[0].results.bins, obj.workflow[0].results.density)
+    >>> plt.show()
     """
 
     def __init__(

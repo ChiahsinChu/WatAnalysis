@@ -131,20 +131,20 @@ def identify_water_molecules(
 
 
 def voronoi_volume(
-        h_positions: np.ndarray,
-        o_positions: np.ndarray,
-        box: np.ndarray,
-    ):
+    h_positions: np.ndarray,
+    o_positions: np.ndarray,
+    box: np.ndarray,
+):
     all_distances = np.zeros((h_positions.shape[0], o_positions.shape[0]))
     distance_array(h_positions, o_positions, result=all_distances, box=box)
     oxygen_ids = np.argmin(all_distances, axis=1)
     np.unique(oxygen_ids, return_index=True, return_counts=True)
-    
+
     # Loop through each frame in the trajectory
     for frame in atoms:
         # Get the positions of atoms
         positions = frame.get_positions()
-        
+
         # Get the atomic numbers (assuming H=1, O=8)
         atomic_numbers = frame.get_atomic_numbers()
 
@@ -167,6 +167,7 @@ def voronoi_volume(
         for h_idx, o_idx in enumerate(h_to_o_assignment):
             print(f"  H atom {h_idx+1} is assigned to O atom {o_idx+1}")
         print("\n")
+
 
 def mic_1d(x: np.ndarray, box_length: float, ref: float = 0.0) -> np.ndarray:
     """

@@ -62,7 +62,7 @@ class PolarisationDensityAnalysis(SingleAnalysis):
 
     def _single_frame(self, analyser: PlanarInterfaceAnalysisBase):
         update_flag = analyser.data_requirements[
-            f"update_coord_1d_{self.label}"
+            f"coord_1d_{self.label}"
         ].update_flag
         if not update_flag:
             # copy the coordinates to the intermediate array
@@ -71,7 +71,7 @@ class PolarisationDensityAnalysis(SingleAnalysis):
                 self.ag.positions[:, analyser.axis, np.newaxis],
             )
             # set the flag to True
-            analyser.data_requirements[f"update_coord_1d_{self.label}"].set_update_flag(
+            analyser.data_requirements[f"coord_1d_{self.label}"].set_update_flag(
                 True
             )
 

@@ -14,7 +14,7 @@ from MDAnalysis.analysis.hydrogenbonds.hbond_analysis import HydrogenBondAnalysi
 from MDAnalysis.core.groups import AtomGroup
 from MDAnalysis.core.universe import Universe
 from MDAnalysis.exceptions import NoDataError
-from MDAnalysis.lib.distances import capped_distance, minimize_vectors, distance_array
+from MDAnalysis.lib.distances import capped_distance, distance_array, minimize_vectors
 
 from . import utils
 from .preprocess import make_selection, make_selection_two

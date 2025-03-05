@@ -57,9 +57,7 @@ class DensityAnalysis(SingleAnalysis):
         self.ag = analyser.universe.select_atoms(self.selection)
 
     def _single_frame(self, analyser: PlanarInterfaceAnalysisBase):
-        update_flag = analyser.data_requirements[
-            f"update_coord_1d_{self.label}"
-        ].update_flag
+        update_flag = analyser.data_requirements[f"coord_1d_{self.label}"].update_flag
         if not update_flag:
             # copy the coordinates to the intermediate array
             np.copyto(
@@ -67,9 +65,7 @@ class DensityAnalysis(SingleAnalysis):
                 self.ag.positions[:, analyser.axis, np.newaxis],
             )
             # set the flag to True
-            analyser.data_requirements[f"update_coord_1d_{self.label}"].set_update_flag(
-                True
-            )
+            analyser.data_requirements[f"coord_1d_{self.label}"].set_update_flag(True)
 
     def _conclude(self, analyser: PlanarInterfaceAnalysisBase):
         box_length = analyser.universe.dimensions[analyser.axis]
