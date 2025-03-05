@@ -69,6 +69,7 @@ def calc_density_profile(
     n_frames: int,
     dz: float = 0.1,
     sym: bool = False,
+    mol_mass: float = 18.015,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Calculate the density profile of water along the z-axis.
@@ -87,6 +88,8 @@ def calc_density_profile(
         The bin width for the histogram (default is 0.1).
     sym : bool, optional
         If True, symmetrize the density profile (default is False).
+    mol_mass : float
+        Molecular mass of the atoms in g/mol
 
     Returns
     -------
@@ -95,7 +98,6 @@ def calc_density_profile(
     rho : np.ndarray
         The density values corresponding to the z-coordinates.
     """
-
     # Make histogram
     counts, bin_edges = np.histogram(
         z_water.flatten(),
@@ -109,7 +111,7 @@ def calc_density_profile(
     # Density values
     n_water = counts / n_frames
     grid_volume = np.diff(bin_edges) * cross_area
-    rho = utils.calc_water_density(n_water, grid_volume)
+    rho = utils.calc_density(n_water, grid_volume, mol_mass)
     if sym:
         rho = (rho[::-1] + rho) / 2
     return z, rho

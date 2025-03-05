@@ -24,7 +24,7 @@ class WaterAnalysis(AnalysisBase):
     ----------
     universe : Universe
         The MDAnalysis Universe object containing the simulation data.
-    surf_ids : Union[List, np.ndarray], optional
+    surf_ids : Union[List, np.ndarray]
         List or array of surface atom indices of the form [surf_1, surf_2]
         where surf_1 and surf_2 are arrays containing the indices corresponding
         to the left surface and right surface, respectively.
@@ -73,7 +73,7 @@ class WaterAnalysis(AnalysisBase):
     def __init__(
         self,
         universe: Universe,
-        surf_ids: Union[List, np.ndarray] = None,
+        surf_ids: Union[List, np.ndarray],
         **kwargs,
     ):
         self.universe = universe
