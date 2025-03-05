@@ -61,9 +61,7 @@ class PolarisationDensityAnalysis(SingleAnalysis):
             raise Warning("Total charge of the atomgroup is not zero.")
 
     def _single_frame(self, analyser: PlanarInterfaceAnalysisBase):
-        update_flag = analyser.data_requirements[
-            f"coord_1d_{self.label}"
-        ].update_flag
+        update_flag = analyser.data_requirements[f"coord_1d_{self.label}"].update_flag
         if not update_flag:
             # copy the coordinates to the intermediate array
             np.copyto(
@@ -71,14 +69,12 @@ class PolarisationDensityAnalysis(SingleAnalysis):
                 self.ag.positions[:, analyser.axis, np.newaxis],
             )
             # set the flag to True
-            analyser.data_requirements[f"coord_1d_{self.label}"].set_update_flag(
-                True
-            )
+            analyser.data_requirements[f"coord_1d_{self.label}"].set_update_flag(True)
 
     def _conclude(self, analyser: PlanarInterfaceAnalysisBase):
         box_length = analyser.universe.dimensions[analyser.axis]
         # within one cell length positive of z1.
-        r_unwrapped = getattr(analyser, f"coord_1d_{self.label}").squeeze()
+        r_unwrapped = getattr(analyser, f"coord_1d_{self.label}")
         self.r_wrapped = utils.mic_1d(
             r_unwrapped - analyser.r_surf_ref[:, np.newaxis, np.newaxis],
             box_length=box_length,
