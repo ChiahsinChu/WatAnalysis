@@ -2,10 +2,10 @@
 from typing import Dict, List, Tuple
 
 import numpy as np
-from scipy import constants
-from MDAnalysis.lib.distances import distance_array
 from ase import Atoms
 from ase.geometry import get_layers
+from MDAnalysis.lib.distances import distance_array
+from scipy import constants
 
 
 def get_cum_ave(data):

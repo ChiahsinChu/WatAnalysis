@@ -3,7 +3,8 @@
 Functionality for computing time-averaged water structure properties from
 molecular dynamics trajectories of water at interfaces
 """
-from typing import Dict, List, Tuple, Union, Optional
+
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 from ase.cell import Cell
@@ -80,7 +81,7 @@ def calc_density_profile(
         The z-coordinates of water molecules.
     cross_area : float
         The cross-sectional area perpendicular to the z-axis.
-    n_frames: int
+    n_frames : int
         Number of trajectory frames from which water molecules were counted.
     dz : float, optional
         The bin width for the histogram (default is 0.1).
@@ -241,7 +242,7 @@ def count_water_in_region(
         Array of z-coordinates for the upper surface.
     z_water : np.ndarray
         Array of z-coordinates for water molecules.
-    mask: np.ndarray
+    mask : np.ndarray
         Boolean array for values of z_water to include.
     interval : Tuple[float, float]
         Tuple specifying the interval for the region.
