@@ -69,6 +69,9 @@ class Q6OrderParameter(SingleAnalysis):
     def _single_frame(self, analyser: PlanarInterfaceAnalysisBase):
         update_flag = analyser.data_requirements[f"c6_{self.label}"].update_flag
         if not update_flag:
+            # ts_box = analyser._ts.dimensions
+            # box = freud.box.Box.from_matrix(geometry.cellpar_to_cell(ts_box))
+            # box = freud.Box.from_box_lengths_and_angles(*ts_box[:3], *np.deg2rad(ts_box[3:]), dimensions=3)
             # Compute neighbor list
             nlist = (
                 freud.AABBQuery.from_system(analyser._ts, 3)
@@ -80,7 +83,7 @@ class Q6OrderParameter(SingleAnalysis):
             # copy Q6 to the intermediate array
             np.copyto(
                 getattr(analyser, f"c6_{self.label}")[analyser._frame_index],
-                self.q6_calculator.particle_order[:, np.newaxis],
+                self.q6_calculator.particle_order[self.ag.indices, np.newaxis],
             )
             # set the flag to True
             analyser.data_requirements[f"c6_{self.label}"].set_update_flag(True)
@@ -182,7 +185,7 @@ class LocalStructureIndex(SingleAnalysis):
                 min_cutoff=0.1,
                 box=analyser._ts.dimensions,
             )
-            for ii in range(self.ag):
+            for ii in range(self.ag.n_atoms):
                 mask = pairs[:, 0] == ii
                 ds_i = distances[mask]
                 # Skip if not enough neighbors
