@@ -12,9 +12,9 @@ from WatAnalysis.workflow.base import (
 )
 
 
-class Q6OrderParameter(SingleAnalysis):
+class SteinhardtOrderParameter(SingleAnalysis):
     """
-    Calculate atomic Q6 order parameter.
+    Calculate atomic Steinhardt order parameter.
     Ref: Steinhardt, P. J., Nelson, D. R., & Ronchetti, M. Physical Review B, 1983, 28(2), 784-805.
 
     Parameters
@@ -26,6 +26,12 @@ class Q6OrderParameter(SingleAnalysis):
     d_bin : float
         Bin width for histogram calculations in Angstroms.
         (Default: 0.1)
+    cutoff : float
+        Maximum distance for neighbor search in Angstroms.
+        (Default: 3.5)
+    l : int
+        Spherical harmonics order for the Q6 order parameter.
+        (Default: 6)
     """
 
     def __init__(
@@ -34,6 +40,7 @@ class Q6OrderParameter(SingleAnalysis):
         label: str,
         d_bin: float = 0.1,
         cutoff: float = 3.5,
+        l: int = 6,
     ) -> None:
         super().__init__()
         self.selection = selection
@@ -43,7 +50,7 @@ class Q6OrderParameter(SingleAnalysis):
         assert d_bin > 0, "Bin width must be greater than 0."
         self.d_bin = d_bin
 
-        self.q6_calculator = freud.order.Steinhardt(l=6)
+        self.q6_calculator = freud.order.Steinhardt(l=l)
 
         self.data_requirements = {
             f"c6_{self.label}": DataRequirement(
