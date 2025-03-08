@@ -181,20 +181,26 @@ class LocalStructureIndex(SingleAnalysis):
             pairs, distances = capped_distance(
                 self.ag,
                 self.ag,
-                max_cutoff=self.cutoff,
+                max_cutoff=self.cutoff + 1.0,
                 min_cutoff=0.1,
                 box=analyser._ts.dimensions,
+                return_distances=True,
             )
             for ii in range(self.ag.n_atoms):
                 mask = pairs[:, 0] == ii
                 ds_i = distances[mask]
+
+                n_list = np.count_nonzero(ds_i <= self.cutoff) + 1
                 # Skip if not enough neighbors
-                if len(ds_i) < 2:
+                if n_list < 3:
                     continue
+
+                sorted_indices = np.argsort(ds_i)
+                sorted_distances = ds_i[sorted_indices][:n_list]
+                delta_d = np.diff(sorted_distances)
                 # Compute LSI
-                delta_d = ds_i - np.mean(ds_i)
                 getattr(analyser, f"lsi_{self.label}")[analyser._frame_index, ii, 0] = (
-                    np.sum(np.exp(-((delta_d / 0.1) ** 2)))
+                    np.mean((delta_d - np.mean(delta_d)) ** 2)
                 )
             # set the flag to True
             analyser.data_requirements[f"lsi_{self.label}"].set_update_flag(True)
