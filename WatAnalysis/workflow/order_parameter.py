@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
+from typing import List, Union
+
 import freud
 import numpy as np
 from MDAnalysis.analysis.distances import capped_distance
@@ -29,9 +31,11 @@ class SteinhardtOrderParameter(SingleAnalysis):
     cutoff : float
         Maximum distance for neighbor search in Angstroms.
         (Default: 3.5)
-    l : int
-        Spherical harmonics order for the Q6 order parameter.
+    l : int or List[int]
+        Spherical harmonics order for the Steinhardt order parameter.
         (Default: 6)
+    kwargs : dict of keyword arguments
+        Additional keyword arguments for freud.order.Steinhardt.
     """
 
     def __init__(
@@ -40,23 +44,26 @@ class SteinhardtOrderParameter(SingleAnalysis):
         label: str,
         d_bin: float = 0.1,
         cutoff: float = 3.5,
-        l: int = 6,
+        l: Union[int, List[int]] = 6,
+        **kwargs,
     ) -> None:
         super().__init__()
         self.selection = selection
         self.label = label
         self.cutoff = cutoff
+        if isinstance(l, int):
+            l = [l]
 
         assert d_bin > 0, "Bin width must be greater than 0."
         self.d_bin = d_bin
 
-        self.q6_calculator = freud.order.Steinhardt(l=l)
+        self.calculator = freud.order.Steinhardt(l=l, **kwargs)
 
         self.data_requirements = {
-            f"c6_{self.label}": DataRequirement(
-                f"c6_{self.label}",
+            f"Steinhardt_{self.label}": DataRequirement(
+                f"Steinhardt_{self.label}",
                 atomic=True,
-                dim=1,
+                dim=len(l),
                 selection=self.selection,
             ),
             f"coord_1d_{self.label}": DataRequirement(
@@ -74,7 +81,7 @@ class SteinhardtOrderParameter(SingleAnalysis):
         self.ag = analyser.universe.select_atoms(self.selection)
 
     def _single_frame(self, analyser: PlanarInterfaceAnalysisBase):
-        update_flag = analyser.data_requirements[f"c6_{self.label}"].update_flag
+        update_flag = analyser.data_requirements[f"Steinhardt_{self.label}"].update_flag
         if not update_flag:
             # ts_box = analyser._ts.dimensions
             # box = freud.box.Box.from_matrix(geometry.cellpar_to_cell(ts_box))
@@ -85,15 +92,16 @@ class SteinhardtOrderParameter(SingleAnalysis):
                 .query(self.ag.positions, {"r_max": self.cutoff})
                 .toNeighborList()
             )
-            # Compute Q6 order parameter
-            self.q6_calculator.compute(system=analyser._ts, neighbors=nlist)
-            # copy Q6 to the intermediate array
+            # Compute Steinhardt order parameter
+            self.calculator.compute(system=analyser._ts, neighbors=nlist)
+            ql = self.calculator.ql[self.ag.indices].reshape([self.ag.n_atoms, -1])
+            # copy Steinhardt order parameter to the intermediate array
             np.copyto(
-                getattr(analyser, f"c6_{self.label}")[analyser._frame_index],
-                self.q6_calculator.particle_order[self.ag.indices, np.newaxis],
+                getattr(analyser, f"Steinhardt_{self.label}")[analyser._frame_index],
+                ql,
             )
             # set the flag to True
-            analyser.data_requirements[f"c6_{self.label}"].set_update_flag(True)
+            analyser.data_requirements[f"Steinhardt_{self.label}"].set_update_flag(True)
 
         update_flag = analyser.data_requirements[f"coord_1d_{self.label}"].update_flag
         if not update_flag:
