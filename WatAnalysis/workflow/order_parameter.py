@@ -132,8 +132,8 @@ class SteinhardtOrderParameter(SingleAnalysis):
         # calculate hist for every order_param
         all_bin_means = []
         for ii in range(self.n_l):
-            order_param = order_params[:, :, ii]
-            mask = ~np.isnan(order_param[:, :, np.newaxis])
+            order_param = order_params[:, :, ii][:, :, np.newaxis]
+            mask = ~np.isnan(order_param)
             bin_means, bin_edges, _binnumber = stats.binned_statistic(
                 self.r_wrapped[mask].flatten(), order_param[mask].flatten(), bins=bin_edges
             )
