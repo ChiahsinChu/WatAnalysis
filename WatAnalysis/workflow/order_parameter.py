@@ -126,13 +126,14 @@ class SteinhardtOrderParameter(SingleAnalysis):
         bin_edges = np.arange(0.0, analyser.r_surf_hi.mean() + self.d_bin, self.d_bin)
         bins = utils.bin_edges_to_grid(bin_edges)
 
-        c6 = getattr(analyser, f"c6_{self.label}")
+        order_params = getattr(analyser, f"Steinhardt_{self.label}")
+        mask = ~np.isnan(order_params)
         bin_means, bin_edges, _binnumber = stats.binned_statistic(
-            self.r_wrapped.flatten(), c6.flatten(), bins=bin_edges
+            self.r_wrapped[mask].flatten(), order_params[mask].flatten(), bins=bin_edges
         )
 
         self.results.bins = bins
-        self.results.c6 = bin_means
+        self.results.order_params = bin_means
 
 
 class LocalStructureIndex(SingleAnalysis):
