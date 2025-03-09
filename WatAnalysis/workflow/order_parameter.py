@@ -185,30 +185,16 @@ class LocalStructureIndex(SingleAnalysis):
     def _single_frame(self, analyser: PlanarInterfaceAnalysisBase):
         update_flag = analyser.data_requirements[f"lsi_{self.label}"].update_flag
         if not update_flag:
-            pairs, distances = capped_distance(
-                self.ag,
-                self.ag,
-                max_cutoff=self.cutoff + 1.0,
-                min_cutoff=0.1,
+            ts_lsi = calc_atomic_lsi(
+                positions=self.ag.positions,
                 box=analyser._ts.dimensions,
-                return_distances=True,
+                cutoff=self.cutoff,
             )
-            for ii in range(self.ag.n_atoms):
-                mask = pairs[:, 0] == ii
-                ds_i = distances[mask]
-
-                n_list = np.count_nonzero(ds_i <= self.cutoff) + 1
-                # Skip if not enough neighbors
-                if n_list < 3:
-                    continue
-
-                sorted_indices = np.argsort(ds_i)
-                sorted_distances = ds_i[sorted_indices][:n_list]
-                delta_d = np.diff(sorted_distances)
-                # Compute LSI
-                getattr(analyser, f"lsi_{self.label}")[analyser._frame_index, ii, 0] = (
-                    np.mean((delta_d - np.mean(delta_d)) ** 2)
-                )
+            # copy LSI to the intermediate array
+            np.copyto(
+                getattr(analyser, f"lsi_{self.label}")[analyser._frame_index],
+                ts_lsi[:, np.newaxis],
+            )
             # set the flag to True
             analyser.data_requirements[f"lsi_{self.label}"].set_update_flag(True)
 
@@ -236,9 +222,39 @@ class LocalStructureIndex(SingleAnalysis):
         bins = utils.bin_edges_to_grid(bin_edges)
 
         lsi = getattr(analyser, f"lsi_{self.label}")
+        mask = lsi > 0
         bin_means, bin_edges, _binnumber = stats.binned_statistic(
-            self.r_wrapped.flatten(), lsi.flatten(), bins=bin_edges
+            self.r_wrapped[mask], lsi[mask], bins=bin_edges
         )
 
         self.results.bins = bins
         self.results.lsi = bin_means
+
+
+def calc_atomic_lsi(positions, box, cutoff=3.7):
+    pairs, distances = capped_distance(
+        positions,
+        positions,
+        max_cutoff=cutoff + 1.0,
+        min_cutoff=0.1,
+        box=box,
+        return_distances=True,
+    )
+    n_atoms = positions.shape[0]
+    lsi = np.zeros((n_atoms))
+    for ii in range(n_atoms):
+        mask = pairs[:, 0] == ii
+        ds_i = distances[mask]
+
+        n_list = np.count_nonzero(ds_i <= cutoff) + 1
+        # Make sure there are neighbors beyond the cutoff
+        # Skip if not enough neighbors
+        if n_list > len(ds_i) or n_list < 3:
+            continue
+
+        sorted_indices = np.argsort(ds_i)
+        sorted_distances = ds_i[sorted_indices][:n_list]
+        delta_d = np.diff(sorted_distances)
+        # Compute LSI
+        lsi[ii] = np.mean((delta_d - np.mean(delta_d)) ** 2)
+    return lsi
