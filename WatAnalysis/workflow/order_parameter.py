@@ -53,7 +53,8 @@ class SteinhardtOrderParameter(SingleAnalysis):
         self.cutoff = cutoff
         if isinstance(l, int):
             l = [l]
-
+        self.n_l = len(l)
+        
         assert d_bin > 0, "Bin width must be greater than 0."
         self.d_bin = d_bin
 
@@ -126,16 +127,22 @@ class SteinhardtOrderParameter(SingleAnalysis):
         bin_edges = np.arange(0.0, analyser.r_surf_hi.mean() + self.d_bin, self.d_bin)
         bins = utils.bin_edges_to_grid(bin_edges)
 
+        # nf x n_atoms x n_order_params
         order_params = getattr(analyser, f"Steinhardt_{self.label}")
-        mask = ~np.isnan(order_params)
-        bin_means, bin_edges, _binnumber = stats.binned_statistic(
-            self.r_wrapped[mask].flatten(), order_params[mask].flatten(), bins=bin_edges
-        )
-
+        # calculate hist for every order_param
+        all_bin_means = []
+        for ii in range(self.n_l):
+            order_param = order_params[:, :, ii]
+            mask = ~np.isnan(order_param[:, :, np.newaxis])
+            bin_means, bin_edges, _binnumber = stats.binned_statistic(
+                self.r_wrapped[mask].flatten(), order_param[mask].flatten(), bins=bin_edges
+            )
+            all_bin_means.append(bin_means)
+            
         self.results.bins = bins
-        self.results.order_params = bin_means
-
-
+        self.results.order_params = np.array(all_bin_means)
+        self.results.l = self.calculator.l
+        
 class LocalStructureIndex(SingleAnalysis):
     """
     Calculate local structure index.
