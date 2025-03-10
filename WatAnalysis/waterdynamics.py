@@ -3,11 +3,13 @@
 Functionality for computing dynamical quantities from molecular dynamics
 trajectories of water at interfaces
 """
+
 import numpy as np
 from MDAnalysis.analysis.msd import EinsteinMSD
-from waterdynamics import SurvivalProbability, WaterOrientationalRelaxation
 
 from WatAnalysis.preprocess import make_selection
+
+from .waterdynamics import SurvivalProbability, WaterOrientationalRelaxation
 
 
 def calc_vector_autocorrelation(
@@ -110,7 +112,6 @@ def calc_survival_probability(
 
     # Calculate continuous ACF for each lag time
     for i, tau in enumerate(tau_range):
-
         if tau > 0:
             # N(t), shape: (num_timesteps - tau, )
             n_t = np.sum(mask, axis=1)[:-tau:step]

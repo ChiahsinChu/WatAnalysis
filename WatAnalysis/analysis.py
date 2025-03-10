@@ -1,19 +1,18 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """
 Class for analysis of atomistic simulations of confined water. Collects
-all relevant data from a trajectory, and the user can then choose which 
+all relevant data from a trajectory, and the user can then choose which
 analyses to perform.
 """
 
-from typing import List, Tuple, Union, Optional
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from ase.cell import Cell
 from MDAnalysis.analysis.base import AnalysisBase
 from MDAnalysis.core.universe import Universe
 
-from . import utils
-from . import waterstructure
-from . import waterdynamics
+from . import utils, waterdynamics, waterstructure
 
 
 class WaterAnalysis(AnalysisBase):
@@ -25,7 +24,7 @@ class WaterAnalysis(AnalysisBase):
     ----------
     universe : Universe
         The MDAnalysis Universe object containing the simulation data.
-    surf_ids : Union[List, np.ndarray], optional
+    surf_ids : Union[List, np.ndarray]
         List or array of surface atom indices of the form [surf_1, surf_2]
         where surf_1 and surf_2 are arrays containing the indices corresponding
         to the left surface and right surface, respectively.
@@ -74,7 +73,7 @@ class WaterAnalysis(AnalysisBase):
     def __init__(
         self,
         universe: Universe,
-        surf_ids: Union[List, np.ndarray] = None,
+        surf_ids: Union[List, np.ndarray],
         **kwargs,
     ):
         self.universe = universe

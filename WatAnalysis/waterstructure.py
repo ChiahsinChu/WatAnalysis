@@ -3,7 +3,8 @@
 Functionality for computing time-averaged water structure properties from
 molecular dynamics trajectories of water at interfaces
 """
-from typing import Dict, List, Tuple, Union, Optional
+
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 from ase.cell import Cell
@@ -13,7 +14,7 @@ from MDAnalysis.analysis.hydrogenbonds.hbond_analysis import HydrogenBondAnalysi
 from MDAnalysis.core.groups import AtomGroup
 from MDAnalysis.core.universe import Universe
 from MDAnalysis.exceptions import NoDataError
-from MDAnalysis.lib.distances import capped_distance, minimize_vectors
+from MDAnalysis.lib.distances import capped_distance, distance_array, minimize_vectors
 
 from . import utils
 from .preprocess import make_selection, make_selection_two
@@ -68,6 +69,7 @@ def calc_density_profile(
     n_frames: int,
     dz: float = 0.1,
     sym: bool = False,
+    mol_mass: float = 18.015,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Calculate the density profile of water along the z-axis.
@@ -80,12 +82,14 @@ def calc_density_profile(
         The z-coordinates of water molecules.
     cross_area : float
         The cross-sectional area perpendicular to the z-axis.
-    n_frames: int
+    n_frames : int
         Number of trajectory frames from which water molecules were counted.
     dz : float, optional
         The bin width for the histogram (default is 0.1).
     sym : bool, optional
         If True, symmetrize the density profile (default is False).
+    mol_mass : float
+        Molecular mass of the atoms in g/mol
 
     Returns
     -------
@@ -94,7 +98,6 @@ def calc_density_profile(
     rho : np.ndarray
         The density values corresponding to the z-coordinates.
     """
-
     # Make histogram
     counts, bin_edges = np.histogram(
         z_water.flatten(),
@@ -108,7 +111,7 @@ def calc_density_profile(
     # Density values
     n_water = counts / n_frames
     grid_volume = np.diff(bin_edges) * cross_area
-    rho = utils.calc_water_density(n_water, grid_volume)
+    rho = utils.calc_density(n_water, grid_volume, mol_mass)
     if sym:
         rho = (rho[::-1] + rho) / 2
     return z, rho
@@ -241,7 +244,7 @@ def count_water_in_region(
         Array of z-coordinates for the upper surface.
     z_water : np.ndarray
         Array of z-coordinates for water molecules.
-    mask: np.ndarray
+    mask : np.ndarray
         Boolean array for values of z_water to include.
     interval : Tuple[float, float]
         Tuple specifying the interval for the region.
@@ -390,7 +393,7 @@ class WaterStructure(AnalysisBase):
         )
 
         self.z_water = None
-        self.cos_theta = None
+        self.cos_theta_water = None
         self.z1 = None
         self.z2 = None
         self.cross_area = None
@@ -398,7 +401,7 @@ class WaterStructure(AnalysisBase):
     def _prepare(self):
         # Initialize empty arrays
         self.z_water = np.zeros((self.n_frames, self.oxygen_ag.n_atoms))
-        self.cos_theta = np.zeros((self.n_frames, self.oxygen_ag.n_atoms))
+        self.cos_theta_water = np.zeros((self.n_frames, self.oxygen_ag.n_atoms))
         self.z1 = np.zeros(self.n_frames)
         self.z2 = np.zeros(self.n_frames)
         self.cross_area = 0.0
@@ -436,7 +439,7 @@ class WaterStructure(AnalysisBase):
             mic=self.min_vector,
         )
         cos_theta = (dipole[:, self.axis]) / np.linalg.norm(dipole, axis=-1)
-        np.copyto(self.cos_theta[self._frame_index], cos_theta)
+        np.copyto(self.cos_theta_water[self._frame_index], cos_theta)
 
     def _conclude(self):
         # Average surface area
@@ -497,7 +500,7 @@ class WaterStructure(AnalysisBase):
         # In this way, the density rho corresponds to the density in the
         # orientation profile rho * <cos theta>
         if only_valid_dipoles:
-            valid = ~np.isnan(self.cos_theta.flatten())
+            valid = ~np.isnan(self.cos_theta_water.flatten())
         else:
             valid = np.ones(self.z_water.flatten().size, dtype=bool)
 
@@ -545,13 +548,13 @@ class WaterStructure(AnalysisBase):
         z2_mean = np.mean(self.z2)
 
         # Check valid water molecules (O with 2 H)
-        valid = ~np.isnan(self.cos_theta.flatten())
+        valid = ~np.isnan(self.cos_theta_water.flatten())
 
         counts, bin_edges = np.histogram(
             self.z_water.flatten()[valid],
             bins=int((z2_mean - z1_mean) / self.dz),
             range=(z1_mean, z2_mean),
-            weights=self.cos_theta.flatten()[valid],
+            weights=self.cos_theta_water.flatten()[valid],
         )
 
         z = utils.bin_edges_to_grid(bin_edges)
@@ -583,7 +586,7 @@ class WaterStructure(AnalysisBase):
         z1_mean = np.mean(self.z1)
         z2_mean = np.mean(self.z2)
         z_coords = self.z_water.flatten()
-        cos_theta = self.cos_theta.flatten()
+        cos_theta = self.cos_theta_water.flatten()
 
         bin_edges = np.linspace(
             z1_mean, z2_mean, int((z2_mean - z1_mean) / self.dz) + 1
@@ -631,7 +634,7 @@ class WaterStructure(AnalysisBase):
             A list [x, y] containing the grid of angles (x) and the
             probability density of the angular distribution (y).
         """
-        valid = ~np.isnan(self.cos_theta)
+        valid = ~np.isnan(self.cos_theta_water)
         mask = (
             (self.z_water > (self.z1[:, np.newaxis] + interval[0]))
             & (self.z_water <= (self.z1[:, np.newaxis] + interval[1]))
@@ -639,14 +642,18 @@ class WaterStructure(AnalysisBase):
         )
 
         n_water = np.count_nonzero(mask, axis=1)
-        lower_surface_angles = np.arccos(self.cos_theta[mask].flatten()) / np.pi * 180
+        lower_surface_angles = (
+            np.arccos(self.cos_theta_water[mask].flatten()) / np.pi * 180
+        )
 
         mask = (
             (self.z_water < (self.z2[:, np.newaxis] - interval[0]))
             & (self.z_water >= (self.z2[:, np.newaxis] - interval[1]))
             & valid
         )
-        upper_surface_angles = np.arccos(-self.cos_theta[mask].flatten()) / np.pi * 180
+        upper_surface_angles = (
+            np.arccos(-self.cos_theta_water[mask].flatten()) / np.pi * 180
+        )
         n_water += np.count_nonzero(mask, axis=1)
 
         combined_angles = np.concatenate([lower_surface_angles, upper_surface_angles])
@@ -793,121 +800,6 @@ class AngularDistribution(AnalysisBase):
             sel_ag.unwrap()
             selection.append(sel_ag)
         return selection
-
-
-# class AD(AngularDistribution):
-
-#     def __init__(self,
-#                  universe,
-#                  nbins=50,
-#                  nproc=1,
-#                  axis="z",
-#                  updating=True,
-#                  **kwargs):
-#         select = make_selection_two(**kwargs)
-#         # print("selection: ", select)
-#         super().__init__(universe, select, nbins, nproc, axis)
-#         self.updating = updating
-
-#     def _getHistogram(self, universe, selection, bins, axis):
-#         """
-#         This function gets a normalized histogram of the cos(theta) values. It
-#         return a list of list.
-#         """
-#         a_lo = self._getCosTheta(universe, selection[::2], axis)
-#         a_hi = self._getCosTheta(universe, selection[1::2], axis)
-#         # print(np.shape(a_lo))
-#         # print(np.shape(a_hi))
-
-#         cosThetaOH = np.concatenate([np.array(a_lo[0]), -np.array(a_hi[0])])
-#         cosThetaHH = np.concatenate([np.array(a_lo[1]), -np.array(a_hi[1])])
-#         cosThetadip = np.concatenate([np.array(a_lo[2]), -np.array(a_hi[2])])
-#         ThetaOH = np.arccos(cosThetaOH) / np.pi * 180
-#         ThetaHH = np.arccos(cosThetaHH) / np.pi * 180
-#         Thetadip = np.arccos(cosThetadip) / np.pi * 180
-
-#         coshistInterval = np.linspace(-1., 1., bins)
-#         anglehistInterval = np.linspace(0., 180., bins)
-
-#         histcosThetaOH = np.histogram(cosThetaOH,
-#                                       coshistInterval,
-#                                       density=True)
-#         histcosThetaHH = np.histogram(cosThetaHH,
-#                                       coshistInterval,
-#                                       density=True)
-#         histcosThetadip = np.histogram(cosThetadip,
-#                                        coshistInterval,
-#                                        density=True)
-#         histThetaOH = np.histogram(ThetaOH, anglehistInterval, density=True)
-#         histThetaHH = np.histogram(ThetaHH, anglehistInterval, density=True)
-#         histThetadip = np.histogram(Thetadip, anglehistInterval, density=True)
-
-#         return (histcosThetaOH, histcosThetaHH, histcosThetadip, histThetaOH,
-#                 histThetaHH, histThetadip)
-
-#     def run(self, **kwargs):
-#         """Function to evaluate the angular distribution of cos(theta)"""
-
-#         selection = self._selection_serial(self.universe, self.selection_str)
-
-#         self.graph = {}
-#         output = self._getHistogram(self.universe, selection, self.bins,
-#                                     self.axis)
-#         # this is to format the exit of the file
-#         # maybe this output could be improved
-#         self.graph['cosOH'] = np.transpose(
-#             np.concatenate(
-#                 ([output[0][1][:-1] + (output[0][1][1] - output[0][1][0]) / 2],
-#                  [output[0][0]])))
-#         self.graph['cosHH'] = np.transpose(
-#             np.concatenate(
-#                 ([output[1][1][:-1] + (output[1][1][1] - output[1][0][0]) / 2],
-#                  [output[1][0]])))
-#         self.graph['cosD'] = np.transpose(
-#             np.concatenate(
-#                 ([output[2][1][:-1] + (output[2][1][1] - output[2][1][0]) / 2],
-#                  [output[2][0]])))
-#         self.graph['OH'] = np.transpose(
-#             np.concatenate(
-#                 ([output[3][1][:-1] + (output[3][1][1] - output[3][1][0]) / 2],
-#                  [output[3][0]])))
-#         self.graph['HH'] = np.transpose(
-#             np.concatenate(
-#                 ([output[4][1][:-1] + (output[4][1][1] - output[4][1][0]) / 2],
-#                  [output[4][0]])))
-#         self.graph['D'] = np.transpose(
-#             np.concatenate(
-#                 ([output[5][1][:-1] + (output[5][1][1] - output[5][1][0]) / 2],
-#                  [output[5][0]])))
-
-#         # listcosOH = [list(output[0][1]), list(output[0][0])]
-#         # listcosHH = [list(output[1][1]), list(output[1][0])]
-#         # listcosdip = [list(output[2][1]), list(output[2][0])]
-#         # listOH = [list(output[3][1]), list(output[3][0])]
-#         # listHH = [list(output[4][1]), list(output[4][0])]
-#         # listdip = [list(output[5][1]), list(output[5][0])]
-
-#         # self.graph.append(self._hist2column(listcosOH))
-#         # self.graph.append(self._hist2column(listcosHH))
-#         # self.graph.append(self._hist2column(listcosdip))
-#         # self.graph.append(self._hist2column(listOH))
-#         # self.graph.append(self._hist2column(listHH))
-#         # self.graph.append(self._hist2column(listdip))
-
-#     def _selection_serial(self, universe, l_selection_str):
-#         selection = []
-#         for ts in ProgressBar(universe.trajectory,
-#                               verbose=True,
-#                               total=universe.trajectory.n_frames):
-#             tmp_ag = universe.select_atoms(l_selection_str[0],
-#                                            updating=self.updating)
-#             tmp_ag.unwrap()
-#             selection.append(tmp_ag)
-#             tmp_ag = universe.select_atoms(l_selection_str[1],
-#                                            updating=self.updating)
-#             tmp_ag.unwrap()
-#             selection.append(tmp_ag)
-#         return selection
 
 
 class HBA(HydrogenBondAnalysis):
@@ -1134,3 +1026,240 @@ class DeprecatedWaterStructure(AnalysisBase):
         out = np.histogram(theta, bins=90, range=(0.0, 180.0), density=True)
         grid = out[1][:-1] + np.diff(out[1]) / 2
         return n_water, [grid, out[0]]
+
+
+class AlkaliStructure(AnalysisBase):
+    def __init__(
+        self,
+        universe: Universe,
+        surf_ids: Union[List, np.ndarray] = None,
+        **kwargs,
+    ):
+        self.universe = universe
+        trajectory = self.universe.trajectory
+        super().__init__(trajectory, verbose=kwargs.get("verbose", False))
+        self.n_frames = len(trajectory)
+
+        self.axis = kwargs.get("axis", 2)
+        self.surf_ids = surf_ids
+        self.oxygen_ag = self.universe.select_atoms(kwargs.get("oxygen_sel", "name O"))
+        self.hydrogen_ag = self.universe.select_atoms(
+            kwargs.get("hydrogen_sel", "name H")
+        )
+        self.min_vector = kwargs.get("min_vector", True)
+        self.dz = kwargs.get("dz", 0.1)
+
+        self.z_oxygen = None
+        self.cos_theta_OH = None
+        self.cns = None
+
+        self.z1 = None
+        self.z2 = None
+        self.cross_area = None
+
+    def _prepare(self):
+        # Initialize empty arrays
+        self.z_oxygen = np.zeros((self.n_frames, self.oxygen_ag.n_atoms))
+        self.cos_theta_OH = np.zeros((self.n_frames, self.oxygen_ag.n_atoms))
+        self.cns = np.zeros((self.n_frames, self.oxygen_ag.n_atoms), dtype=int)
+
+        self.z1 = np.zeros(self.n_frames)
+        self.z2 = np.zeros(self.n_frames)
+        self.cross_area = 0.0
+
+    def _single_frame(self):
+        ts_box = self._ts.dimensions
+        ts_area = Cell.new(ts_box).area(self.axis)
+        self.cross_area += ts_area
+
+        coords = self._ts.positions
+
+        # Absolute surface positions
+        surf1_z = coords[self.surf_ids[0], self.axis]
+        surf2_z = coords[self.surf_ids[1], self.axis]
+        box_length = ts_box[self.axis]
+        # Use MIC in case part of the surface crosses the cell boundaries
+        self.z1[self._frame_index] = utils.mic_1d(
+            surf1_z, box_length, ref=surf1_z[0]
+        ).mean()
+        self.z2[self._frame_index] = utils.mic_1d(
+            surf2_z, box_length, ref=surf2_z[0]
+        ).mean()
+
+        coords_oxygen = self.oxygen_ag.positions
+        coords_hydrogen = self.hydrogen_ag.positions
+
+        all_distances = np.zeros((coords_hydrogen.shape[0], coords_oxygen.shape[0]))
+        distance_array(coords_hydrogen, coords_oxygen, result=all_distances, box=ts_box)
+        # H to O mapping
+        H_to_O_mapping = np.argmin(all_distances, axis=1)
+        oxygen_ids, cns = np.unique(H_to_O_mapping, return_counts=True)
+
+        np.copyto(
+            self.z_oxygen[self._frame_index],
+            np.pad(
+                coords_oxygen[oxygen_ids, self.axis],
+                (0, len(coords_oxygen) - len(oxygen_ids)),
+                mode="constant",
+                constant_values=np.nan,
+            ),
+        )
+        np.copyto(
+            self.cns[self._frame_index],
+            np.pad(
+                cns,
+                (0, len(coords_oxygen) - len(oxygen_ids)),
+                mode="constant",
+                constant_values=-1,
+            ),
+        )
+
+        OH_vectors = minimize_vectors(
+            coords_hydrogen - coords_oxygen[H_to_O_mapping], box=ts_box
+        )
+        dipoles = np.zeros((len(oxygen_ids), 3))
+        for count, ii in enumerate(oxygen_ids):
+            dipoles[count] = OH_vectors[np.where(H_to_O_mapping == ii)[0]].mean(axis=0)
+        cos_theta = (dipoles[:, self.axis]) / np.linalg.norm(dipoles, axis=-1)
+        np.copyto(
+            self.cos_theta_OH[self._frame_index],
+            np.pad(
+                cos_theta,
+                (0, len(coords_oxygen) - len(oxygen_ids)),
+                mode="constant",
+                constant_values=np.nan,
+            ),
+        )
+
+    def _conclude(self):
+        # Average surface area
+        self.cross_area /= self.n_frames
+
+        box_length = self.universe.dimensions[self.axis]
+        # Step 1: Set z1 as the reference point (zero)
+        z1 = np.zeros(self.z1.shape)
+        # Step 2: Calculate z2 positions relative to z1 using minimum image convention
+        # By setting ref=box_length/2, all positions are within one cell length positive of z1
+        z2 = utils.mic_1d(
+            self.z2 - self.z1,
+            box_length=box_length,
+            ref=box_length / 2,
+        )
+        # Step 3: Calculate z_water relative to z_1, ensuring that all water positions are
+        # within one cell length positive of z1.
+        z_oxygen = utils.mic_1d(
+            self.z_oxygen - self.z1[:, np.newaxis],
+            box_length=box_length,
+            ref=box_length / 2,
+        )
+
+        # Update attributes to the final relative coordinates
+        self.z1 = z1
+        self.z2 = z2
+        self.z_oxygen = z_oxygen
+
+        self.results.rho_water = self.calc_density_profile(cn=2)
+        self.results.geo_dipole_water = self.calc_orientation_profile(cn=2)
+        self.results.rho_OH = self.calc_density_profile(cn=1)
+        self.results.geo_dipole_OH = self.calc_orientation_profile(cn=1)
+
+    def calc_density_profile(
+        self, cn: int = 2, sym: bool = True
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        mol_mass = 15.999 + cn * 1.008
+
+        z1_mean = np.mean(self.z1)
+        z2_mean = np.mean(self.z2)
+
+        mask = self.cns == cn
+        counts, bin_edges = np.histogram(
+            self.z_oxygen[mask],
+            bins=int((z2_mean - z1_mean) / self.dz),
+            range=(z1_mean, z2_mean),
+        )
+
+        # Spatial coordinates
+        z = utils.bin_edges_to_grid(bin_edges)
+
+        # Density values
+        n = counts / self.n_frames
+        grid_volume = np.diff(bin_edges) * self.cross_area
+        rho = utils.calc_density(n, grid_volume, mol_mass)
+        if sym:
+            rho = (rho[::-1] + rho) / 2
+        return z, rho
+
+    def calc_orientation_profile(
+        self, cn: int = 2, sym: bool = True
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        mol_mass = 15.999 + cn * 1.008
+
+        z1_mean = np.mean(self.z1)
+        z2_mean = np.mean(self.z2)
+
+        mask = self.cns == cn
+        counts, bin_edges = np.histogram(
+            self.z_oxygen[mask],
+            bins=int((z2_mean - z1_mean) / self.dz),
+            range=(z1_mean, z2_mean),
+            weights=self.cos_theta_OH[mask],
+        )
+
+        z = utils.bin_edges_to_grid(bin_edges)
+        n = counts / self.n_frames
+        grid_volume = np.diff(bin_edges) * self.cross_area
+        rho_cos_theta = utils.calc_density(n, grid_volume, mol_mass)
+
+        if sym:
+            rho_cos_theta = (rho_cos_theta - rho_cos_theta[::-1]) / 2
+        return z, rho_cos_theta
+
+    def calc_sel_species(
+        self, interval: Tuple[float, float], n_bins: int = 90, cn: int = 2
+    ) -> Tuple[float, list[np.ndarray]]:
+        """
+        Calculate properties of water in a selected region relative to the surfaces.
+
+        Parameters
+        ----------
+        interval : tuple of float
+            The interval range to select the region of interest.
+        n_bins : int, optional
+            The number of bins for the histogram (default is 90).
+
+        Returns
+        -------
+        n_water : float
+            The number of water molecules in the selected region.
+        histogram : list[ndarray]
+            A list [x, y] containing the grid of angles (x) and the
+            probability density of the angular distribution (y).
+        """
+        cn_mask = self.cns == cn
+
+        mask = (
+            (self.z_oxygen > (self.z1[:, np.newaxis] + interval[0]))
+            & (self.z_oxygen <= (self.z1[:, np.newaxis] + interval[1]))
+            & cn_mask
+        )
+
+        n_water = np.count_nonzero(mask, axis=1)
+        lower_surface_angles = np.arccos(self.cos_theta_OH[mask]) / np.pi * 180
+
+        mask = (
+            (self.z_oxygen < (self.z2[:, np.newaxis] - interval[0]))
+            & (self.z_oxygen >= (self.z2[:, np.newaxis] - interval[1]))
+            & cn_mask
+        )
+        upper_surface_angles = np.arccos(-self.cos_theta_OH[mask]) / np.pi * 180
+        n_water += np.count_nonzero(mask, axis=1)
+
+        combined_angles = np.concatenate([lower_surface_angles, upper_surface_angles])
+        angle_distribution, bin_edges = np.histogram(
+            combined_angles,
+            bins=n_bins,
+            range=(0.0, 180.0),
+            density=True,
+        )
+        grid = utils.bin_edges_to_grid(bin_edges)
+        return n_water, [grid, angle_distribution]
