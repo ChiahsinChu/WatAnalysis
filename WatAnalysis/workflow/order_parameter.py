@@ -54,7 +54,7 @@ class SteinhardtOrderParameter(SingleAnalysis):
         if isinstance(l, int):
             l = [l]
         self.n_l = len(l)
-        
+
         assert d_bin > 0, "Bin width must be greater than 0."
         self.d_bin = d_bin
 
@@ -135,14 +135,17 @@ class SteinhardtOrderParameter(SingleAnalysis):
             order_param = order_params[:, :, ii][:, :, np.newaxis]
             mask = ~np.isnan(order_param)
             bin_means, bin_edges, _binnumber = stats.binned_statistic(
-                self.r_wrapped[mask].flatten(), order_param[mask].flatten(), bins=bin_edges
+                self.r_wrapped[mask].flatten(),
+                order_param[mask].flatten(),
+                bins=bin_edges,
             )
             all_bin_means.append(bin_means)
-            
+
         self.results.bins = bins
         self.results.order_params = np.array(all_bin_means)
         self.results.l = self.calculator.l
-        
+
+
 class LocalStructureIndex(SingleAnalysis):
     """
     Calculate local structure index.

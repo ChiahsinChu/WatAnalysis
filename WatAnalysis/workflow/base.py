@@ -89,9 +89,9 @@ class PlanarInterfaceAnalysisBase(AnalysisBase):
         for k, v in self.data_requirements.items():
             if v.atomic:
                 ag = self.universe.select_atoms(v.selection)
-                a = np.full((self.n_frames, ag.n_atoms, v.dim), v.value)
+                a = np.full((self.n_frames, ag.n_atoms, v.dim), v.value, dtype=v.dtype)
             else:
-                a = np.full((self.n_frames, v.dim), v.value)
+                a = np.full((self.n_frames, v.dim), v.value, dtype=v.dtype)
             setattr(self, k, a)
 
         for task in self.workflow:
@@ -183,12 +183,14 @@ class DataRequirement:
         dim: int,
         value: Any = 0.0,
         selection: str = "all",
+        dtype: Any = None,
     ) -> None:
         self.var_name = var_name
         self.atomic = atomic
         self.dim = dim
         self.value = value
         self.selection = selection
+        self.dtype = dtype
 
         # flag for updating the intermediate arrays
         self.update_flag = False
