@@ -6,10 +6,9 @@ trajectories of water at interfaces
 
 import numpy as np
 from MDAnalysis.analysis.msd import EinsteinMSD
+from waterdynamics import SurvivalProbability, WaterOrientationalRelaxation
 
 from WatAnalysis.preprocess import make_selection
-
-from .waterdynamics import SurvivalProbability, WaterOrientationalRelaxation
 
 
 def calc_vector_autocorrelation(
@@ -386,3 +385,4 @@ class MSD(EinsteinMSD):
         select = make_selection(**kwargs)
         # print("selection: ", select)
         super().__init__(universe, select, msd_type, fft, verbose=verbose)
+
