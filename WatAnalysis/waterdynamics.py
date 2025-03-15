@@ -385,4 +385,3 @@ class MSD(EinsteinMSD):
         select = make_selection(**kwargs)
         # print("selection: ", select)
         super().__init__(universe, select, msd_type, fft, verbose=verbose)
-
