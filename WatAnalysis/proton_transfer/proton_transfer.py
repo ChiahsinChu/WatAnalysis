@@ -1,19 +1,16 @@
-from multiprocessing.pool import Pool
-from functools import partial
-
-from dataclasses import dataclass
-from typing import List, Tuple, NamedTuple, Union
-
+# SPDX-License-Identifier: LGPL-3.0-or-later
+import io
 import json
 import os
-import io
+from dataclasses import dataclass
+from functools import partial
+from multiprocessing.pool import Pool
+from typing import List, NamedTuple, Tuple, Union
 
 import MDAnalysis as mda
-from MDAnalysis.lib.distances import minimize_vectors
-
 import numpy as np
-
 from ai2_kit.algorithm.proton_transfer import AlgorithmParameter
+from MDAnalysis.lib.distances import minimize_vectors
 
 
 class AnalysisResult(NamedTuple):

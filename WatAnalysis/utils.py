@@ -289,6 +289,7 @@ def guess_surface_indices(
     surf_dw = pt_indices[tags == layer_tags[0]].tolist()
     return surf_up, surf_dw
 
+
 def calc_pbc_r_max(a, b):
     # calculate area based on cross product
     area = np.cross(a, b)

@@ -2,10 +2,8 @@
 from typing import Dict
 
 import freud
-
 import numpy as np
 from ase import geometry
-
 from MDAnalysis.lib.distances import (
     calc_angles,
     capped_distance,
@@ -262,7 +260,6 @@ class HydrogenBondAnalysis(SingleAnalysis):
 
 
 class RadialCorrelationFunction(SingleAnalysis):
-
     def __init__(
         self,
         oxygen_sel: str = "name O",

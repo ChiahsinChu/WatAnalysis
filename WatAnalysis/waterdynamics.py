@@ -4,9 +4,14 @@ Functionality for computing dynamical quantities from molecular dynamics
 trajectories of water at interfaces
 """
 
+from typing import Optional
+
 import numpy as np
 from MDAnalysis.analysis.msd import EinsteinMSD
-from waterdynamics import SurvivalProbability, WaterOrientationalRelaxation
+from MDAnalysis.analysis.waterdynamics import (
+    SurvivalProbability,
+    WaterOrientationalRelaxation,
+)
 
 from WatAnalysis.preprocess import make_selection
 
@@ -16,7 +21,8 @@ def calc_vector_autocorrelation(
     delta_tau: int,
     step: int,
     vectors: np.ndarray,
-    mask: np.ndarray,
+    mask: Optional[np.ndarray] = None,
+    normalize: bool = True,
 ):
     """
     Calculate the autocorrelation function for a vector quantity over time.
@@ -31,7 +37,7 @@ def calc_vector_autocorrelation(
         Step size for time origins. If equal to max_tau, there is no overlap between
         time windows considered in the calculation (so more uncorrelated).
     vectors : numpy.ndarray
-        Array of vectors with shape (num_timesteps, num_particles, 3)
+        Array of vectors with shape (num_timesteps, num_particles, n_dimensions)
     mask : numpy.ndarray
         Boolean mask array indicating which particles to include, shape
         (num_timesteps, num_particles)
@@ -45,6 +51,8 @@ def calc_vector_autocorrelation(
     """
     tau = np.arange(start=0, stop=max_tau, step=delta_tau)
     acf = np.zeros(tau.shape)
+    if mask is None:
+        mask = np.ones(vectors.shape[:2], dtype=bool)
     mask = np.expand_dims(mask, axis=2)
 
     # Calculate ACF for each lag time
@@ -68,8 +76,9 @@ def calc_vector_autocorrelation(
         # Average over molecules and time origins
         acf[i] = np.sum(dot_products) / n_selected_vectors
 
-    # Normalize the ACF
-    acf /= acf[0]  # Normalize by the zero-lag value
+    if normalize:
+        # Normalize the ACF
+        acf /= acf[0]  # Normalize by the zero-lag value
     return tau, acf
 
 
