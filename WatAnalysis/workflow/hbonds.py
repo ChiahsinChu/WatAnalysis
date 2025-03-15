@@ -1,8 +1,17 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 from typing import Dict
 
+import freud
+
 import numpy as np
-from MDAnalysis.lib.distances import calc_angles, capped_distance
+from ase import geometry
+
+from MDAnalysis.lib.distances import (
+    calc_angles,
+    capped_distance,
+    distance_array,
+    minimize_vectors,
+)
 
 from WatAnalysis import utils
 from WatAnalysis.workflow.base import (
@@ -87,7 +96,6 @@ class HydrogenBondAnalysis(SingleAnalysis):
 
         self.ag_oxygen = None
         self.ag_hydrogen = None
-        self.r_wrapped = None
 
     def _prepare(self, analyser: PlanarInterfaceAnalysisBase):
         self.ag_oxygen = analyser.universe.select_atoms(self.oxygen_sel)
@@ -251,3 +259,134 @@ class HydrogenBondAnalysis(SingleAnalysis):
             ],
             axis=-1,
         )
+
+
+class RadialCorrelationFunction(SingleAnalysis):
+
+    def __init__(
+        self,
+        oxygen_sel: str = "name O",
+        hydrogens_sel: str = "name H",
+        label: str = "oxygen",
+        d_bin: float = 0.1,
+        cutoff: float = 4.5,
+    ) -> None:
+        super().__init__()
+        self.oxygen_sel = oxygen_sel
+        self.hydrogens_sel = hydrogens_sel
+        self.label = label
+
+        assert d_bin > 0, "Bin width must be greater than 0."
+        self.d_bin = d_bin
+        self.cutoff = cutoff
+
+        self.ag_oxygen = None
+        self.ag_hydrogen = None
+        self.calculator = None
+        self.corr_func = None
+
+    def _prepare(self, analyser: PlanarInterfaceAnalysisBase):
+        self.ag_oxygen = analyser.universe.select_atoms(self.oxygen_sel)
+        self.ag_hydrogen = analyser.universe.select_atoms(self.hydrogens_sel)
+
+        cell_vectors = geometry.cellpar_to_cell(analyser.universe.dimensions)
+        cell_vectors = np.delete(cell_vectors, analyser.axis, axis=0)
+        r_max = utils.calc_pbc_r_max(*cell_vectors)
+        bins = int(r_max / self.d_bin)
+        self.calculator = freud.density.CorrelationFunction(
+            bins=bins, r_max=r_max / 1.01
+        )
+        self.corr_func = np.zeros((analyser.n_frames, 3, bins))
+
+    def _single_frame(self, analyser: PlanarInterfaceAnalysisBase):
+        ts_box = analyser._ts.dimensions
+        box_length = ts_box[analyser.axis]
+
+        # calculate mask based on self.cutoff
+        ts_r_surf_lo = analyser.r_surf_lo[analyser._frame_index]
+        ts_r_surf_hi = utils.mic_1d(
+            analyser.r_surf_hi[analyser._frame_index] - ts_r_surf_lo,
+            box_length,
+            ref=box_length / 2,
+        )
+        ts_wrapped_r = utils.mic_1d(
+            self.ag_oxygen.positions[:, analyser.axis] - ts_r_surf_lo,
+            box_length,
+            ref=box_length / 2,
+        )
+        # z distance between the oxygen atom and the surface
+        ts_wrapped_r = np.min([ts_wrapped_r, ts_r_surf_hi - ts_wrapped_r], axis=0)
+        mask = ts_wrapped_r < self.cutoff
+
+        ts_selected_oxygen = self.ag_oxygen[mask]
+        # print(ts_selected_oxygen.positions[:, analyser.axis])
+
+        # Compute neighbor list of selected oxygen atoms
+        nlist = (
+            freud.AABBQuery.from_system(analyser._ts, 3)
+            .query(ts_selected_oxygen.positions, {"r_max": 5.0})
+            .toNeighborList()
+        )
+
+        ds = distance_array(
+            ts_selected_oxygen.positions,
+            self.ag_oxygen.positions,
+            box=analyser._ts.dimensions,
+        )
+        min_vectors = minimize_vectors(
+            self.ag_oxygen.positions[np.argsort(ds, axis=1)[:, 1]]
+            - ts_selected_oxygen.positions,
+            box=analyser._ts.dimensions,
+        )
+        # print(min_vectors)
+        # calculate the angles
+        angles = np.arccos(min_vectors[:, 0] / np.linalg.norm(min_vectors, axis=1))
+        self.calculator.compute(
+            system=analyser._ts,
+            neighbors=nlist,
+            values=analyser._ts.positions[:, analyser.axis],
+            query_points=ts_selected_oxygen.positions,
+            query_values=angles,
+        )
+        np.copyto(self.corr_func[analyser._frame_index, 0], self.calculator.correlation)
+
+        ds = distance_array(
+            ts_selected_oxygen.positions,
+            self.ag_hydrogen.positions,
+            box=analyser._ts.dimensions,
+        )
+        min_vectors = minimize_vectors(
+            self.ag_hydrogen.positions[np.argsort(ds, axis=1)[:, 0]]
+            - ts_selected_oxygen.positions,
+            box=analyser._ts.dimensions,
+        )
+        angles = np.arccos(min_vectors[:, 0] / np.linalg.norm(min_vectors, axis=1))
+        self.calculator.compute(
+            system=analyser._ts,
+            neighbors=nlist,
+            values=analyser._ts.positions[:, analyser.axis],
+            query_points=ts_selected_oxygen.positions,
+            query_values=angles,
+        )
+        np.copyto(self.corr_func[analyser._frame_index, 1], self.calculator.correlation)
+
+        min_vectors = minimize_vectors(
+            self.ag_hydrogen.positions[np.argsort(ds, axis=1)[:, 1]]
+            - ts_selected_oxygen.positions,
+            box=analyser._ts.dimensions,
+        )
+        angles = np.arccos(min_vectors[:, 0] / np.linalg.norm(min_vectors, axis=1))
+        self.calculator.compute(
+            system=analyser._ts,
+            neighbors=nlist,
+            values=analyser._ts.positions[:, analyser.axis],
+            query_points=ts_selected_oxygen.positions,
+            query_values=angles,
+        )
+        np.copyto(self.corr_func[analyser._frame_index, 2], self.calculator.correlation)
+
+    def _conclude(self, analyser: PlanarInterfaceAnalysisBase):
+        self.results.bins = self.calculator.bin_centers
+        corr_func = np.mean(self.corr_func, axis=0)
+        # normalised corr_func to the first bin
+        self.results.corr_func = corr_func / corr_func[:, 0][:, np.newaxis]
