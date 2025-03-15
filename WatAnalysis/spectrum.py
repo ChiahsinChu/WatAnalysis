@@ -3,18 +3,17 @@
 Functionality for computing vibrational spectra from molecular dynamics
 trajectories of water at interfaces
 """
-from typing import List, Union, Optional
+
+from typing import List, Optional, Union
 
 import numpy as np
+from MDAnalysis import Universe
 from scipy import signal
 from scipy.constants import speed_of_light
 
-from MDAnalysis import Universe
-
 from . import utils
-from .waterdynamics import calc_vector_autocorrelation
 from .multitrajbase import MultiTrajsAnalysisBase
-
+from .waterdynamics import calc_vector_autocorrelation
 
 
 def calc_full_vacf(velocities: np.ndarray) -> np.ndarray:
@@ -208,7 +207,7 @@ class InterfaceVACFDeprecated(MultiTrajsAnalysisBase):
 
     def _conclude(self):
         self.results.vacf = [np.mean(vacf[~np.isnan(vacf)]) for vacf in self._vacf]
-        
+
         # vacf = [np.mean(vacf[~np.isnan(vacf)]) for vacf in self._vacf]
         # self.results.vacf = np.array(vacf) / vacf[0]
         # self.results.full_vacf = np.concatenate(
