@@ -160,6 +160,9 @@ class SurvivalProbability(SingleAnalysis):
         Label to identify the intermediate results in the analysis object
     cutoff : float
         Cutoff distance in Angstroms to define the adsorbed state
+    exclude_number : int
+        Number of atoms to exclude from the calculation
+        Useful when there are some atoms need to be excluded from the calculation
     """
 
     def __init__(
@@ -167,12 +170,14 @@ class SurvivalProbability(SingleAnalysis):
         selection: str,
         label: str,
         cutoff: float = 2.7,
+        exclude_number: int = 0,
         **kwargs,
     ) -> None:
         super().__init__()
         self.selection = selection
         self.label = label
         self.cutoff = cutoff
+        self.exclude_number = exclude_number
         self.acf_kwargs = kwargs
 
         self.data_requirements = {
@@ -228,5 +233,8 @@ class SurvivalProbability(SingleAnalysis):
         tau, cf = waterdynamics.calc_vector_autocorrelation(
             vectors=ad_indicator, **self.acf_kwargs
         )
+
         self.results.tau = tau
-        self.results.cf = cf / np.mean(ad_indicator)
+        self.results.cf = (cf - self.exclude_number) / (
+            np.mean(ad_indicator) - self.exclude_number
+        )
