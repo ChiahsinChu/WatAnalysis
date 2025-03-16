@@ -235,6 +235,6 @@ class SurvivalProbability(SingleAnalysis):
         )
 
         self.results.tau = tau
-        self.results.cf = (cf - self.exclude_number) / (
-            np.mean(ad_indicator) - self.exclude_number
+        self.results.cf = (cf - self.exclude_number / self.ag.n_atoms) / (
+            np.mean(ad_indicator) - self.exclude_number / self.ag.n_atoms
         )
