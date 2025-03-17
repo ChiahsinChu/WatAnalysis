@@ -225,7 +225,7 @@ class SurvivalProbability(SingleAnalysis):
         )
         mask = mask_lo | mask_hi
         # convert bool to float
-        ad_indicator = mask.astype(float)
+        ad_indicator = mask.astype(float)[:, :, np.newaxis]
         self.acf_kwargs["normalize"] = False
         tau, cf = waterdynamics.calc_vector_autocorrelation(
             vectors=ad_indicator, **self.acf_kwargs
