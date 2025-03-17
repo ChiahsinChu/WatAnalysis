@@ -171,6 +171,53 @@ class SingleAnalysis(ABC):
             setattr(analyser, k, v)
 
 
+class OneDimCoordSingleAnalysis(SingleAnalysis):
+    def __init__(
+        self,
+        selection: str,
+        label: str,
+    ) -> None:
+        super().__init__()
+        self.selection = selection
+        self.label = label
+
+        self.data_requirements = {
+            f"coord_1d_{self.label}": DataRequirement(
+                f"coord_1d_{self.label}",
+                atomic=True,
+                dim=1,
+                selection=self.selection,
+            ),
+        }
+
+        self.ag = None
+        self.r_wrapped = None
+
+    def _prepare(self, analyser: PlanarInterfaceAnalysisBase):
+        self.ag = analyser.universe.select_atoms(self.selection)
+
+    def _single_frame(self, analyser: PlanarInterfaceAnalysisBase):
+        update_flag = analyser.data_requirements[f"coord_1d_{self.label}"].update_flag
+        if not update_flag:
+            # copy the coordinates to the intermediate array
+            np.copyto(
+                getattr(analyser, f"coord_1d_{self.label}")[analyser._frame_index],
+                self.ag.positions[:, analyser.axis, np.newaxis],
+            )
+            # set the flag to True
+            analyser.data_requirements[f"coord_1d_{self.label}"].set_update_flag(True)
+
+    def _conclude(self, analyser: PlanarInterfaceAnalysisBase):
+        box_length = analyser.universe.dimensions[analyser.axis]
+        # within one cell length positive of z1.
+        r_unwrapped = getattr(analyser, f"coord_1d_{self.label}")
+        self.r_wrapped = utils.mic_1d(
+            r_unwrapped - analyser.r_surf_ref[:, np.newaxis, np.newaxis],
+            box_length=box_length,
+            ref=box_length / 2,
+        )
+
+
 class DataRequirement:
     """
     Class for intermediate data requirements for analysis tasks.

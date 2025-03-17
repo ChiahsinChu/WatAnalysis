@@ -2,16 +2,17 @@
 from typing import Optional, Tuple
 
 import numpy as np
+from MDAnalysis.lib.distances import distance_array, minimize_vectors
 
 from WatAnalysis import utils, waterdynamics
 from WatAnalysis.workflow.base import (
     DataRequirement,
+    OneDimCoordSingleAnalysis,
     PlanarInterfaceAnalysisBase,
-    SingleAnalysis,
 )
 
 
-class FluxCorrelationFunction(SingleAnalysis):
+class FluxCorrelationFunction(OneDimCoordSingleAnalysis):
     """
     Calculate the flux correlation function for a given selection of atoms.
     Ref: Limmer, D. T., et al. J. Phys. Chem. C 2015, 119 (42), 24016-24024.
@@ -23,136 +24,63 @@ class FluxCorrelationFunction(SingleAnalysis):
         Atom selection string used by MDAnalysis.core.universe.Universe.select_atoms(selection)
     label : str
         Label to identify the intermediate results in the analysis object
-    cutoff_ad : float
-        Cutoff distance in Angstroms to define the adsorbed state
-    cutoff_des : float
-        Cutoff distance in Angstroms to define the desorbed state
+    interval_i : Tuple[Optional[float], Optional[float]],
+        interval for initial state
+    interval_f : Tuple[Optional[float], Optional[float]],
+        interval for final state
     """
 
     def __init__(
         self,
         selection: str,
         label: str,
-        cutoff_ad: float,
-        cutoff_des: float,
+        interval_i: Tuple[Optional[float], Optional[float]],
+        interval_f: Tuple[Optional[float], Optional[float]],
         exclude_number: int = 0,
         **kwargs,
     ) -> None:
-        super().__init__()
-        self.selection = selection
-        self.label = label
-        assert cutoff_des >= cutoff_ad, "cutoff_des must be no less than cutoff_ad"
-        self.cutoff_ad = cutoff_ad
-        self.cutoff_des = cutoff_des
+        super().__init__(selection=selection, label=label)
+
+        self.interval_i = interval_i
+        self.interval_f = interval_f
         self.exclude_number = exclude_number
         self.acf_kwargs = kwargs
 
-        self.data_requirements = {
-            f"ad_indicator_{self.label}": DataRequirement(
-                f"ad_indicator_{self.label}",
-                atomic=True,
-                dim=1,
-                selection=self.selection,
-            ),
-            f"des_indicator_{self.label}": DataRequirement(
-                f"des_indicator_{self.label}",
-                atomic=True,
-                dim=1,
-                selection=self.selection,
-            ),
-        }
-
-        self.ag = None
-
-    def _prepare(self, analyser: PlanarInterfaceAnalysisBase):
-        self.ag = analyser.universe.select_atoms(self.selection)
-
-    def _single_frame(self, analyser: PlanarInterfaceAnalysisBase):
-        ts_box = analyser._ts.dimensions
-        box_length = ts_box[analyser.axis]
-        ts_wrapped_r = None
-
-        update_flag = analyser.data_requirements[
-            f"ad_indicator_{self.label}"
-        ].update_flag
-        if not update_flag:
-            if ts_wrapped_r is None:
-                # calculate mask based on self.cutoff
-                ts_r_surf_lo = analyser.r_surf_lo[analyser._frame_index]
-                ts_r_surf_hi = utils.mic_1d(
-                    analyser.r_surf_hi[analyser._frame_index] - ts_r_surf_lo,
-                    box_length,
-                    ref=box_length / 2,
-                )
-                ts_wrapped_r = utils.mic_1d(
-                    self.ag.positions[:, analyser.axis] - ts_r_surf_lo,
-                    box_length,
-                    ref=box_length / 2,
-                )
-                # z distance between the oxygen atom and the surface
-                ts_wrapped_r = np.min(
-                    [ts_wrapped_r, ts_r_surf_hi - ts_wrapped_r], axis=0
-                )
-
-            # adsorbed mask
-            mask = ts_wrapped_r < self.cutoff_ad
-            # set adsorbed indicator to 1 if the atom is within the cutoff distance
-            getattr(analyser, f"ad_indicator_{self.label}")[
-                analyser._frame_index, mask, 0
-            ] = 1.0
-            # set the flag to True
-            analyser.data_requirements[f"ad_indicator_{self.label}"].set_update_flag(
-                True
-            )
-
-        update_flag = analyser.data_requirements[
-            f"des_indicator_{self.label}"
-        ].update_flag
-        if not update_flag:
-            if ts_wrapped_r is None:
-                # calculate mask based on self.cutoff
-                ts_r_surf_lo = analyser.r_surf_lo[analyser._frame_index]
-                ts_r_surf_hi = utils.mic_1d(
-                    analyser.r_surf_hi[analyser._frame_index] - ts_r_surf_lo,
-                    box_length,
-                    ref=box_length / 2,
-                )
-                ts_wrapped_r = utils.mic_1d(
-                    self.ag.positions[:, analyser.axis] - ts_r_surf_lo,
-                    box_length,
-                    ref=box_length / 2,
-                )
-                # z distance between the oxygen atom and the surface
-                ts_wrapped_r = np.min(
-                    [ts_wrapped_r, ts_r_surf_hi - ts_wrapped_r], axis=0
-                )
-
-            # desorbed mask
-            mask = ts_wrapped_r > self.cutoff_des
-            getattr(analyser, f"des_indicator_{self.label}")[
-                analyser._frame_index, mask, 0
-            ] = 1.0
-            # set the flag to True
-            analyser.data_requirements[f"des_indicator_{self.label}"].set_update_flag(
-                True
-            )
-
     def _conclude(self, analyser: PlanarInterfaceAnalysisBase):
-        self.acf_kwargs["normalize"] = False
-        ad_indicator = getattr(analyser, f"ad_indicator_{self.label}")
-        des_indicator = getattr(analyser, f"des_indicator_{self.label}")
+        super()._conclude(analyser)
+
+        mask_lo, mask_hi = utils.get_region_masks(
+            self.r_wrapped.squeeze(),
+            analyser.r_surf_lo,
+            analyser.r_surf_hi,
+            self.interval_i,
+        )
+        mask_i = mask_lo | mask_hi
+        # convert bool to float
+        indicator_i = mask_i.astype(float)[:, :, np.newaxis]
+
+        mask_lo, mask_hi = utils.get_region_masks(
+            self.r_wrapped.squeeze(),
+            analyser.r_surf_lo,
+            analyser.r_surf_hi,
+            self.interval_f,
+        )
+        mask_f = mask_lo | mask_hi
+        # convert bool to float
+        indicator_f = mask_f.astype(float)[:, :, np.newaxis]
+
         tau, cf = waterdynamics.calc_vector_correlation(
-            vector_a=ad_indicator,
-            vector_b=des_indicator,
+            vector_a=indicator_i,
+            vector_b=indicator_f,
             **self.acf_kwargs,
         )
         self.results.tau = tau
         self.results.cf = cf / (
-            np.mean(ad_indicator) - self.exclude_number / self.ag.n_atoms
+            np.mean(indicator_i) - self.exclude_number / self.ag.n_atoms
         )
 
 
-class SurvivalProbability(SingleAnalysis):
+class SurvivalProbability(OneDimCoordSingleAnalysis):
     """
     Calculate the flux correlation function for a given selection of atoms.
     Ref: Limmer, D. T., et al. J. Phys. Chem. C 2015, 119 (42), 24016-24024.
@@ -179,49 +107,20 @@ class SurvivalProbability(SingleAnalysis):
         exclude_number: int = 0,
         **kwargs,
     ) -> None:
-        super().__init__()
-        self.selection = selection
-        self.label = label
+        super().__init__(selection=selection, label=label)
+
         self.interval = interval
         self.exclude_number = exclude_number
         self.acf_kwargs = kwargs
 
-        self.data_requirements = {
-            f"coord_1d_{self.label}": DataRequirement(
-                f"coord_1d_{self.label}",
-                atomic=True,
-                dim=1,
-                selection=self.selection,
-            ),
-        }
-
-        self.ag = None
-
-    def _prepare(self, analyser: PlanarInterfaceAnalysisBase):
-        self.ag = analyser.universe.select_atoms(self.selection)
-
-    def _single_frame(self, analyser: PlanarInterfaceAnalysisBase):
-        update_flag = analyser.data_requirements[f"coord_1d_{self.label}"].update_flag
-        if not update_flag:
-            # copy the coordinates to the intermediate array
-            np.copyto(
-                getattr(analyser, f"coord_1d_{self.label}")[analyser._frame_index],
-                self.ag.positions[:, analyser.axis, np.newaxis],
-            )
-            # set the flag to True
-            analyser.data_requirements[f"coord_1d_{self.label}"].set_update_flag(True)
-
     def _conclude(self, analyser: PlanarInterfaceAnalysisBase):
-        box_length = analyser.universe.dimensions[analyser.axis]
-        # within one cell length positive of z1.
-        r_unwrapped = getattr(analyser, f"coord_1d_{self.label}")
-        self.r_wrapped = utils.mic_1d(
-            r_unwrapped - analyser.r_surf_ref[:, np.newaxis, np.newaxis],
-            box_length=box_length,
-            ref=box_length / 2,
-        ).squeeze()
+        super()._conclude(analyser)
+
         mask_lo, mask_hi = utils.get_region_masks(
-            self.r_wrapped, analyser.r_surf_lo, analyser.r_surf_hi, self.interval
+            self.r_wrapped.squeeze(),
+            analyser.r_surf_lo,
+            analyser.r_surf_hi,
+            self.interval,
         )
         mask = mask_lo | mask_hi
         # convert bool to float
@@ -235,3 +134,115 @@ class SurvivalProbability(SingleAnalysis):
         self.results.cf = (cf - self.exclude_number / self.ag.n_atoms) / (
             np.mean(ad_indicator) - self.exclude_number / self.ag.n_atoms
         )
+
+
+class WaterReorientation(OneDimCoordSingleAnalysis):
+    def __init__(
+        self,
+        selection_oxygen: str,
+        selection_hydrogen: str,
+        label: str,
+        interval: Tuple[Optional[float], Optional[float]],
+        **kwargs,
+    ) -> None:
+        super().__init__(selection=selection_oxygen, label=label)
+
+        self.interval = interval
+        self.acf_kwargs = kwargs
+
+        self.selection_hydrogen = selection_hydrogen
+        self.data_requirements.update(
+            {
+                f"dipole_{self.label}": DataRequirement(
+                    f"dipole_{self.label}",
+                    atomic=True,
+                    dim=3,
+                    selection=self.selection,
+                ),
+                f"cn_{self.label}": DataRequirement(
+                    f"cn_{self.label}",
+                    atomic=True,
+                    dim=1,
+                    selection=self.selection,
+                    dtype=np.int32,
+                ),
+            }
+        )
+
+        self.ag_hydrogen = None
+
+    def _prepare(self, analyser: PlanarInterfaceAnalysisBase):
+        super()._prepare(analyser)
+        self.ag_hydrogen = analyser.universe.select_atoms(self.selection_hydrogen)
+
+    def _single_frame(self, analyser: PlanarInterfaceAnalysisBase):
+        super()._single_frame(analyser)
+
+        update_flag = (
+            analyser.data_requirements[f"cn_{self.label}"].update_flag
+            and analyser.data_requirements[f"dipole_{self.label}"].update_flag
+        )
+        if update_flag:
+            return
+
+        ts_box = analyser._ts.dimensions
+        coords_oxygen = self.ag.positions
+        coords_hydrogen = self.ag_hydrogen.positions
+
+        all_distances = np.empty(
+            (self.ag_hydrogen.n_atoms, self.ag.n_atoms), dtype=np.float64
+        )
+        distance_array(
+            coords_hydrogen,
+            coords_oxygen,
+            result=all_distances,
+            box=analyser._ts.dimensions,
+        )
+        # H to O mapping
+        H_to_O_mapping = np.argmin(all_distances, axis=1)
+        out = np.unique(H_to_O_mapping, return_counts=True)
+        cns = np.zeros(self.ag.n_atoms, dtype=np.int32)
+        oxygen_ids = out[0]
+        cns[oxygen_ids] = out[1]
+        # copy the coordinates to the intermediate array
+        np.copyto(
+            getattr(analyser, f"cn_{self.label}")[analyser._frame_index],
+            cns[:, np.newaxis],
+        )
+        # set the flag to True
+        analyser.data_requirements[f"cn_{self.label}"].set_update_flag(True)
+
+        OH_vectors = minimize_vectors(
+            coords_hydrogen - coords_oxygen[H_to_O_mapping], box=ts_box
+        )
+        dipoles = np.zeros((self.ag.n_atoms, 3))
+        for ii in range(self.ag.n_atoms):
+            dipoles[ii] = OH_vectors[np.where(H_to_O_mapping == ii)[0]].mean(axis=0)
+        # cos_theta = (dipoles[:, analyser.axis]) / np.linalg.norm(dipoles, axis=-1)
+        np.copyto(
+            getattr(analyser, f"dipole_{self.label}")[analyser._frame_index],
+            dipoles,
+        )
+        # set the flag to True
+        analyser.data_requirements[f"dipole_{self.label}"].set_update_flag(True)
+
+    def _conclude(self, analyser: PlanarInterfaceAnalysisBase):
+        super()._conclude(analyser)
+
+        mask_lo, mask_hi = utils.get_region_masks(
+            self.r_wrapped.squeeze(),
+            analyser.r_surf_lo,
+            analyser.r_surf_hi,
+            self.interval,
+        )
+        mask_cn = getattr(analyser, f"cn_{self.label}") == 2
+        mask = (mask_lo | mask_hi) & mask_cn.squeeze()
+
+        tau, cf = waterdynamics.calc_vector_autocorrelation(
+            vectors=getattr(analyser, f"dipole_{self.label}"),
+            mask=mask,
+            **self.acf_kwargs,
+        )
+
+        self.results.tau = tau
+        self.results.cf = cf

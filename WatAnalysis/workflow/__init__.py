@@ -4,7 +4,11 @@ from .density import DensityAnalysis
 from .hbonds import HydrogenBondAnalysis, RadialCorrelationFunction
 from .order_parameter import LocalStructureIndex, SteinhardtOrderParameter
 from .pol_density import PolarisationDensityAnalysis
-from .time_correlation_function import FluxCorrelationFunction, SurvivalProbability
+from .time_correlation_function import (
+    FluxCorrelationFunction,
+    SurvivalProbability,
+    WaterReorientation,
+)
 
 __all__ = [
     "SingleAnalysis",
@@ -17,4 +21,5 @@ __all__ = [
     "RadialCorrelationFunction",
     "FluxCorrelationFunction",
     "SurvivalProbability",
+    "WaterReorientation",
 ]
