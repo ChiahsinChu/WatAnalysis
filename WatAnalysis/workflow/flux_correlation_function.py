@@ -33,6 +33,7 @@ class FluxCorrelationFunction(SingleAnalysis):
         label: str,
         cutoff_ad: float,
         cutoff_des: float,
+        exclude_number: int = 0,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -41,6 +42,7 @@ class FluxCorrelationFunction(SingleAnalysis):
         assert cutoff_des >= cutoff_ad, "cutoff_des must be no less than cutoff_ad"
         self.cutoff_ad = cutoff_ad
         self.cutoff_des = cutoff_des
+        self.exclude_number = exclude_number
         self.acf_kwargs = kwargs
 
         self.data_requirements = {
@@ -143,7 +145,9 @@ class FluxCorrelationFunction(SingleAnalysis):
             **self.acf_kwargs,
         )
         self.results.tau = tau
-        self.results.cf = cf / np.mean(ad_indicator)
+        self.results.cf = cf / (
+            np.mean(ad_indicator) - self.exclude_number / self.ag.n_atoms
+        )
 
 
 class SurvivalProbability(SingleAnalysis):
