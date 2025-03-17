@@ -297,7 +297,9 @@ class WaterAnalysis(AnalysisBase):
         )
 
     def count_in_region(
-        self, interval: Tuple[float, float], only_valid_dipoles: bool = False
+        self,
+        interval: Tuple[Optional[float], Optional[float]],
+        only_valid_dipoles: bool = False,
     ):
         """
         Count the number of water molecules in a specified region.
@@ -332,7 +334,9 @@ class WaterAnalysis(AnalysisBase):
         )
 
     def angular_distribution(
-        self, interval: Tuple[float, float], n_bins: int = 90
+        self,
+        interval: Tuple[Optional[float], Optional[float]],
+        n_bins: int = 90,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Calculate distribution of dipole angles for water in a selected
@@ -369,7 +373,7 @@ class WaterAnalysis(AnalysisBase):
         self,
         max_tau: int,
         delta_tau: int,
-        interval: Tuple[float, float],
+        interval: Tuple[Optional[float], Optional[float]],
         step: int = 1,
     ):
         """
@@ -411,7 +415,7 @@ class WaterAnalysis(AnalysisBase):
         self,
         max_tau: int,
         delta_tau: int,
-        interval: Tuple[float, float],
+        interval: Tuple[Optional[float], Optional[float]],
         step: int = 1,
     ) -> np.ndarray:
         """

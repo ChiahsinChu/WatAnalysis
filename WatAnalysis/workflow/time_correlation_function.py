@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
+from typing import Optional, Tuple
+
 import numpy as np
 
 from WatAnalysis import utils, waterdynamics
@@ -162,8 +164,8 @@ class SurvivalProbability(SingleAnalysis):
         Atom selection string used by MDAnalysis.core.universe.Universe.select_atoms(selection)
     label : str
         Label to identify the intermediate results in the analysis object
-    cutoff : float
-        Cutoff distance in Angstroms to define the adsorbed state
+    interval : Tuple[Optional[float], Optional[float]],
+        The interval for selection of atoms
     exclude_number : int
         Number of atoms to exclude from the calculation
         Useful when there are some atoms need to be excluded from the calculation
@@ -173,20 +175,20 @@ class SurvivalProbability(SingleAnalysis):
         self,
         selection: str,
         label: str,
-        cutoff: float = 2.7,
+        interval: Tuple[Optional[float], Optional[float]],
         exclude_number: int = 0,
         **kwargs,
     ) -> None:
         super().__init__()
         self.selection = selection
         self.label = label
-        self.cutoff = cutoff
+        self.interval = interval
         self.exclude_number = exclude_number
         self.acf_kwargs = kwargs
 
         self.data_requirements = {
-            f"ad_indicator_{self.label}": DataRequirement(
-                f"ad_indicator_{self.label}",
+            f"coord_1d_{self.label}": DataRequirement(
+                f"coord_1d_{self.label}",
                 atomic=True,
                 dim=1,
                 selection=self.selection,
@@ -199,41 +201,32 @@ class SurvivalProbability(SingleAnalysis):
         self.ag = analyser.universe.select_atoms(self.selection)
 
     def _single_frame(self, analyser: PlanarInterfaceAnalysisBase):
-        update_flag = analyser.data_requirements[
-            f"ad_indicator_{self.label}"
-        ].update_flag
+        update_flag = analyser.data_requirements[f"coord_1d_{self.label}"].update_flag
         if not update_flag:
-            ts_box = analyser._ts.dimensions
-            box_length = ts_box[analyser.axis]
-
-            # calculate mask based on self.cutoff
-            ts_r_surf_lo = analyser.r_surf_lo[analyser._frame_index]
-            ts_r_surf_hi = utils.mic_1d(
-                analyser.r_surf_hi[analyser._frame_index] - ts_r_surf_lo,
-                box_length,
-                ref=box_length / 2,
+            # copy the coordinates to the intermediate array
+            np.copyto(
+                getattr(analyser, f"coord_1d_{self.label}")[analyser._frame_index],
+                self.ag.positions[:, analyser.axis, np.newaxis],
             )
-            ts_wrapped_r = utils.mic_1d(
-                self.ag.positions[:, analyser.axis] - ts_r_surf_lo,
-                box_length,
-                ref=box_length / 2,
-            )
-            # z distance between the oxygen atom and the surface
-            ts_wrapped_r = np.min([ts_wrapped_r, ts_r_surf_hi - ts_wrapped_r], axis=0)
-            mask = ts_wrapped_r < self.cutoff
-            # set adsorbed indicator to 1 if the atom is within the cutoff distance
-            getattr(analyser, f"ad_indicator_{self.label}")[
-                analyser._frame_index, mask, 0
-            ] = 1.0
-
             # set the flag to True
-            analyser.data_requirements[f"ad_indicator_{self.label}"].set_update_flag(
-                True
-            )
+            analyser.data_requirements[f"coord_1d_{self.label}"].set_update_flag(True)
 
     def _conclude(self, analyser: PlanarInterfaceAnalysisBase):
+        box_length = analyser.universe.dimensions[analyser.axis]
+        # within one cell length positive of z1.
+        r_unwrapped = getattr(analyser, f"coord_1d_{self.label}")
+        self.r_wrapped = utils.mic_1d(
+            r_unwrapped - analyser.r_surf_ref[:, np.newaxis, np.newaxis],
+            box_length=box_length,
+            ref=box_length / 2,
+        ).squeeze()
+        mask_lo, mask_hi = utils.get_region_masks(
+            self.r_wrapped, analyser.r_surf_lo, analyser.r_surf_hi, self.interval
+        )
+        mask = mask_lo | mask_hi
+        # convert bool to float
+        ad_indicator = mask.astype(float)
         self.acf_kwargs["normalize"] = False
-        ad_indicator = getattr(analyser, f"ad_indicator_{self.label}")
         tau, cf = waterdynamics.calc_vector_autocorrelation(
             vectors=ad_indicator, **self.acf_kwargs
         )

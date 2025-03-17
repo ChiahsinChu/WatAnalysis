@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from ase import Atoms
@@ -130,45 +130,6 @@ def identify_water_molecules(
     return water_dict
 
 
-def voronoi_volume(
-    h_positions: np.ndarray,
-    o_positions: np.ndarray,
-    box: np.ndarray,
-):
-    all_distances = np.zeros((h_positions.shape[0], o_positions.shape[0]))
-    distance_array(h_positions, o_positions, result=all_distances, box=box)
-    oxygen_ids = np.argmin(all_distances, axis=1)
-    np.unique(oxygen_ids, return_index=True, return_counts=True)
-
-    # Loop through each frame in the trajectory
-    for frame in atoms:
-        # Get the positions of atoms
-        positions = frame.get_positions()
-
-        # Get the atomic numbers (assuming H=1, O=8)
-        atomic_numbers = frame.get_atomic_numbers()
-
-        # Separate the positions of O and H atoms
-        o_positions = positions[atomic_numbers == 8]
-        h_positions = positions[atomic_numbers == 1]
-
-        # Create a Voronoi diagram for the positions of O and H atoms
-        vor = Voronoi(o_positions)
-
-        # Assign each H atom to the closest O atom based on Voronoi cells
-        h_to_o_assignment = []
-        for h_pos in h_positions:
-            # Find the nearest O atom in the Voronoi diagram
-            nearest_o_index = np.argmin(np.linalg.norm(o_positions - h_pos, axis=1))
-            h_to_o_assignment.append(nearest_o_index)
-
-        # Print the assignments for the current frame
-        print(f"Frame {frame.get_number()}:")
-        for h_idx, o_idx in enumerate(h_to_o_assignment):
-            print(f"  H atom {h_idx+1} is assigned to O atom {o_idx+1}")
-        print("\n")
-
-
 def mic_1d(x: np.ndarray, box_length: float, ref: float = 0.0) -> np.ndarray:
     """
     Apply the minimum image convention to a 1D coordinate in a periodic cell.
@@ -203,7 +164,10 @@ def exponential_moving_average(data, alpha=0.1):
 
 
 def get_region_masks(
-    z_coords: np.ndarray, z1: np.ndarray, z2: np.ndarray, interval: Tuple[float, float]
+    z_coords: np.ndarray,
+    z1: np.ndarray,
+    z2: np.ndarray,
+    interval: Tuple[Optional[float], Optional[float]],
 ):
     """
     Generate region masks based on z-coordinates and specified intervals.
@@ -216,8 +180,9 @@ def get_region_masks(
         Array of z-coordinates of lower surface.
     z2 : np.ndarray
         Array of z-coordinates of upper surface.
-    interval : Tuple[float, float]
+    interval : Tuple[Optional[float], Optional[float]],
         Interval range to create masks.
+        If None, the mask will be True for all z-coordinates.
 
     Returns
     -------
@@ -226,15 +191,23 @@ def get_region_masks(
     mask2 : np.ndarray
         Boolean mask where z_coords are within the interval range of z2.
     """
-    mask1 = (z_coords > (z1[:, np.newaxis] + interval[0])) & (
-        z_coords <= (z1[:, np.newaxis] + interval[1])
-    )
-
-    mask2 = (z_coords < (z2[:, np.newaxis] - interval[0])) & (
-        z_coords >= (z2[:, np.newaxis] - interval[1])
-    )
-
-    return mask1, mask2
+    mask_lo = np.ones_like(z_coords, dtype=bool)
+    mask_hi = np.ones_like(z_coords, dtype=bool)
+    # add mask for lower bounds
+    if interval[0] is not None:
+        mask_lo = mask_lo & (z_coords > (z1[:, np.newaxis] + interval[0]))
+        mask_hi = mask_hi & (z_coords < (z2[:, np.newaxis] - interval[0]))
+    # add mask for upper bounds
+    if interval[1] is not None:
+        mask_lo = mask_lo & (z_coords <= (z1[:, np.newaxis] + interval[1]))
+        mask_hi = mask_hi & (z_coords >= (z2[:, np.newaxis] - interval[1]))
+    # mask_lo = (z_coords > (z1[:, np.newaxis] + interval[0])) & (
+    #     z_coords <= (z1[:, np.newaxis] + interval[1])
+    # )
+    # mask_hi = (z_coords < (z2[:, np.newaxis] - interval[0])) & (
+    #     z_coords >= (z2[:, np.newaxis] - interval[1])
+    # )
+    return mask_lo, mask_hi
 
 
 def guess_surface_indices(
