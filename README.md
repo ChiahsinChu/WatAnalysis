@@ -35,4 +35,16 @@ pip install .
 
 3. `temp`: instantaneous temperature of selected atoms
 
+## Workflow mode
+
+### Supported functions
+
+- density profile: `DensityAnalysis`
+- dipole angular distribution: `AngularDistribution`
+- hydrogen bond: `HydrogenBondAnalysis`
+- correlation function:
+  - survivial probability: `SurvivalProbability`
+  - flux correlation function: `FluxCorrelationFunction`
+  - water reorientation: `WaterReorientation`
+
 ## Developer Guide
