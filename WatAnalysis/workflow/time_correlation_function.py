@@ -246,8 +246,14 @@ class WaterReorientation(OneDimCoordSingleAnalysis):
         tau, cf = waterdynamics.calc_vector_autocorrelation(
             vectors=getattr(analyser, f"dipole_{self.label}"),
             mask=mask,
+            modifier_func=self.lg2,
             **self.acf_kwargs,
         )
 
         self.results.tau = tau
         self.results.cf = cf
+
+    @staticmethod
+    def lg2(x):
+        """Second Legendre polynomial"""
+        return (3 * x * x - 1) / 2

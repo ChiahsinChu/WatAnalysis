@@ -17,6 +17,7 @@ def calc_vector_correlation(
     step: int = 1,
     mask: Optional[np.ndarray] = None,
     normalize: bool = True,
+    modifier_func: Optional[callable] = None,
 ):
     """
     Calculate correlation functions for atomic vectorial quantity over time.
@@ -39,6 +40,9 @@ def calc_vector_correlation(
         (num_timesteps, num_particles)
     normalize : bool
         Whether to normalize the ACF by the zero-lag value
+    modifier_func : callable
+        Function to apply to the dot products before averaging
+        Useful when calculating water reorientation correlation functions
 
     Returns
     -------
@@ -70,7 +74,8 @@ def calc_vector_correlation(
                 _vectors_0 * _vectors_t, axis=2
             )  # Shape: ((num_timesteps - t)//step, num_molecules)
             n_selected_vectors = np.count_nonzero(mask[:-t:step] * mask[t::step])
-
+        if modifier_func is not None:
+            dot_products = modifier_func(dot_products)
         # Average over molecules and time origins
         acf[i] = np.sum(dot_products) / n_selected_vectors
 
@@ -87,6 +92,7 @@ def calc_vector_autocorrelation(
     vectors: np.ndarray,
     mask: Optional[np.ndarray] = None,
     normalize: bool = True,
+    modifier_func: Optional[callable] = None,
 ):
     """
     Calculate the autocorrelation functions for atomic vectorial quantity over time.
@@ -121,6 +127,7 @@ def calc_vector_autocorrelation(
         step=step,
         mask=mask,
         normalize=normalize,
+        modifier_func=modifier_func,
     )
 
 
