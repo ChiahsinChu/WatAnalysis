@@ -196,7 +196,7 @@ class WaterReorientation(OneDimCoordSingleAnalysis):
             coords_hydrogen,
             coords_oxygen,
             result=all_distances,
-            box=analyser._ts.dimensions,
+            box=ts_box,
         )
         # H to O mapping
         H_to_O_mapping = np.argmin(all_distances, axis=1)
@@ -217,7 +217,12 @@ class WaterReorientation(OneDimCoordSingleAnalysis):
         )
         dipoles = np.zeros((self.ag.n_atoms, 3))
         for ii in range(self.ag.n_atoms):
-            dipoles[ii] = OH_vectors[np.where(H_to_O_mapping == ii)[0]].mean(axis=0)
+            # tmp_vectors = OH_vectors[np.where(H_to_O_mapping == ii)[0]]
+            # print(tmp_vectors, np.linalg.norm(tmp_vectors, axis=-1))
+            tmp_ids = np.where(H_to_O_mapping == ii)[0]
+            if len(tmp_ids) > 0:
+                dipoles[ii] = OH_vectors[tmp_ids].mean(axis=0)
+
         # cos_theta = (dipoles[:, analyser.axis]) / np.linalg.norm(dipoles, axis=-1)
         np.copyto(
             getattr(analyser, f"dipole_{self.label}")[analyser._frame_index],
