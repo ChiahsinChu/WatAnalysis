@@ -2,14 +2,13 @@
 from typing import Optional, Tuple
 
 import numpy as np
-from MDAnalysis.lib.distances import distance_array, minimize_vectors
 
 from WatAnalysis import utils, waterdynamics
 from WatAnalysis.workflow.base import (
-    DataRequirement,
     OneDimCoordSingleAnalysis,
     PlanarInterfaceAnalysisBase,
 )
+from WatAnalysis.workflow.dipole import DipoleBaseSingleAnalysis
 
 
 class FluxCorrelationFunction(OneDimCoordSingleAnalysis):
@@ -136,7 +135,7 @@ class SurvivalProbability(OneDimCoordSingleAnalysis):
         )
 
 
-class WaterReorientation(OneDimCoordSingleAnalysis):
+class WaterReorientation(DipoleBaseSingleAnalysis):
     def __init__(
         self,
         selection_oxygen: str,
@@ -145,91 +144,14 @@ class WaterReorientation(OneDimCoordSingleAnalysis):
         interval: Tuple[Optional[float], Optional[float]],
         **kwargs,
     ) -> None:
-        super().__init__(selection=selection_oxygen, label=label)
+        super().__init__(
+            selection_oxygen=selection_oxygen,
+            selection_hydrogen=selection_hydrogen,
+            label=label,
+            interval=interval,
+        )
 
-        self.interval = interval
         self.acf_kwargs = kwargs
-
-        self.selection_hydrogen = selection_hydrogen
-        self.data_requirements.update(
-            {
-                f"dipole_{self.label}": DataRequirement(
-                    f"dipole_{self.label}",
-                    atomic=True,
-                    dim=3,
-                    selection=self.selection,
-                ),
-                f"cn_{self.label}": DataRequirement(
-                    f"cn_{self.label}",
-                    atomic=True,
-                    dim=1,
-                    selection=self.selection,
-                    dtype=np.int32,
-                ),
-            }
-        )
-
-        self.ag_hydrogen = None
-
-    def _prepare(self, analyser: PlanarInterfaceAnalysisBase):
-        super()._prepare(analyser)
-        self.ag_hydrogen = analyser.universe.select_atoms(self.selection_hydrogen)
-
-    def _single_frame(self, analyser: PlanarInterfaceAnalysisBase):
-        super()._single_frame(analyser)
-
-        update_flag = (
-            analyser.data_requirements[f"cn_{self.label}"].update_flag
-            and analyser.data_requirements[f"dipole_{self.label}"].update_flag
-        )
-        if update_flag:
-            return
-
-        ts_box = analyser._ts.dimensions
-        coords_oxygen = self.ag.positions
-        coords_hydrogen = self.ag_hydrogen.positions
-
-        all_distances = np.empty(
-            (self.ag_hydrogen.n_atoms, self.ag.n_atoms), dtype=np.float64
-        )
-        distance_array(
-            coords_hydrogen,
-            coords_oxygen,
-            result=all_distances,
-            box=ts_box,
-        )
-        # H to O mapping
-        H_to_O_mapping = np.argmin(all_distances, axis=1)
-        out = np.unique(H_to_O_mapping, return_counts=True)
-        cns = np.zeros(self.ag.n_atoms, dtype=np.int32)
-        oxygen_ids = out[0]
-        cns[oxygen_ids] = out[1]
-        # copy the coordinates to the intermediate array
-        np.copyto(
-            getattr(analyser, f"cn_{self.label}")[analyser._frame_index],
-            cns[:, np.newaxis],
-        )
-        # set the flag to True
-        analyser.data_requirements[f"cn_{self.label}"].set_update_flag(True)
-
-        OH_vectors = minimize_vectors(
-            coords_hydrogen - coords_oxygen[H_to_O_mapping], box=ts_box
-        )
-        dipoles = np.zeros((self.ag.n_atoms, 3))
-        for ii in range(self.ag.n_atoms):
-            # tmp_vectors = OH_vectors[np.where(H_to_O_mapping == ii)[0]]
-            # print(tmp_vectors, np.linalg.norm(tmp_vectors, axis=-1))
-            tmp_ids = np.where(H_to_O_mapping == ii)[0]
-            if len(tmp_ids) > 0:
-                dipoles[ii] = OH_vectors[tmp_ids].mean(axis=0)
-
-        # cos_theta = (dipoles[:, analyser.axis]) / np.linalg.norm(dipoles, axis=-1)
-        np.copyto(
-            getattr(analyser, f"dipole_{self.label}")[analyser._frame_index],
-            dipoles,
-        )
-        # set the flag to True
-        analyser.data_requirements[f"dipole_{self.label}"].set_update_flag(True)
 
     def _conclude(self, analyser: PlanarInterfaceAnalysisBase):
         super()._conclude(analyser)
