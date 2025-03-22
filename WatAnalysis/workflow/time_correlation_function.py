@@ -169,6 +169,8 @@ class WaterReorientation(DipoleBaseSingleAnalysis):
         # normalize the dipole vectors
         vectors = getattr(analyser, f"dipole_{self.label}")
         vectors = vectors / np.linalg.norm(vectors, axis=2)[:, :, np.newaxis]
+        # replace nan with 0
+        vectors[np.isnan(vectors)] = 0
         self.acf_kwargs.update({"normalize": False})
         tau, cf = waterdynamics.calc_vector_autocorrelation(
             vectors=vectors,
