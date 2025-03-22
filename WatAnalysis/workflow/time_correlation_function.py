@@ -2,6 +2,7 @@
 from typing import Optional, Tuple
 
 import numpy as np
+from scipy import special
 
 from WatAnalysis import utils, waterdynamics
 from WatAnalysis.workflow.base import (
@@ -165,17 +166,15 @@ class WaterReorientation(DipoleBaseSingleAnalysis):
         mask_cn = getattr(analyser, f"cn_{self.label}") == 2
         mask = (mask_lo | mask_hi) & mask_cn.squeeze()
 
+        # normalize the dipole vectors
+        vectors = getattr(analyser, f"dipole_{self.label}")
+        vectors = vectors / np.linalg.norm(vectors, axis=2)[:, :, np.newaxis]
+        self.acf_kwargs.update({"normalize": False})
         tau, cf = waterdynamics.calc_vector_autocorrelation(
-            vectors=getattr(analyser, f"dipole_{self.label}"),
+            vectors=vectors,
             mask=mask,
-            modifier_func=self.lg2,
+            modifier_func=np.poly1d(special.legendre(2)),
             **self.acf_kwargs,
         )
-
         self.results.tau = tau
         self.results.cf = cf
-
-    @staticmethod
-    def lg2(x):
-        """Second Legendre polynomial"""
-        return (3 * x * x - 1) / 2

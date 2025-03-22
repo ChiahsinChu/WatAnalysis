@@ -75,7 +75,9 @@ def calc_vector_correlation(
             )  # Shape: ((num_timesteps - t)//step, num_molecules)
             n_selected_vectors = np.count_nonzero(mask[:-t:step] * mask[t::step])
         if modifier_func is not None:
+            zero_mask = np.isclose(dot_products, 0)
             dot_products = modifier_func(dot_products)
+            dot_products[zero_mask] = 0.0
         # Average over molecules and time origins
         acf[i] = np.sum(dot_products) / n_selected_vectors
 
